@@ -1,0 +1,2403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JetSMART — Mis Reservas</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f0f4f8;
+  color: #1a1a2e;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+header {
+  background: linear-gradient(135deg, #0A3560, #1a5a9a);
+  color: #fff;
+  padding: 20px 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+header .logo { font-size: 28px; }
+header h1   { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
+header p    { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+
+/* ── Tabs ── */
+nav {
+  background: #0A3560;
+  display: flex;
+  overflow-x: auto;
+  padding: 0 12px;
+  gap: 2px;
+}
+nav button {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.65);
+  padding: 13px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition: all .18s;
+}
+nav button:hover  { color: #fff; }
+nav button.active { color: #fff; border-bottom-color: #4fa3e8; }
+
+/* ── Main layout ── */
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── Cards ── */
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  padding: 20px 24px;
+  margin-bottom: 18px;
+}
+.card h2 { font-size: 16px; font-weight: 700; color: #0A3560; margin-bottom: 12px; }
+.card p  { font-size: 13px; color: #666; }
+
+/* ── Filtros ── */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+  align-items: flex-end;
+}
+.filtros > div { display: flex; flex-direction: column; gap: 4px; }
+.filtros input, .filtros select {
+  border: 1.5px solid #d0dce8;
+  border-radius: 7px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  outline: none;
+  transition: border-color .15s;
+}
+.filtros input { min-width: 180px; }
+.filtros input:focus, .filtros select:focus { border-color: #345D8B; }
+.filtros label { font-size: 11px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* ── Tabla de reservas ── */
+.tabla-wrap { overflow-x: auto; border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: #0A3560;
+  color: #fff;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid #e8eef5; transition: background .12s; }
+tbody tr:hover { background: #f5f9ff; }
+tbody td { padding: 10px 12px; vertical-align: middle; }
+.col-code { font-weight: 700; font-size: 14px; color: #0A3560; letter-spacing: 0.5px; }
+.col-ruta .vuelo  { font-size: 11px; color: #888; }
+.col-ruta .ruta   { font-weight: 600; }
+.col-ruta .hora   { color: #1565C0; font-weight: 700; }
+.col-ruta .fecha  { font-size: 11px; color: #555; }
+.col-titular { font-size: 12px; color: #444; max-width: 160px; }
+.no-data { text-align: center; color: #888; padding: 40px; font-size: 14px; }
+
+/* ── Badges de estado ── */
+/* ── Estado filtro toggles ── */
+.estado-toggles { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+.est-tog { padding: 5px 12px; border-radius: 16px; border: 2px solid #e0e0e0; background: #f5f5f5; color: #aaa; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.est-tog.active.tog-Pendiente { background: #E3F2FD; color: #1565C0; border-color: #90CAF9; }
+.est-tog.active.tog-Abierto   { background: #FFF3E0; color: #E65100; border-color: #FFCC80; }
+.est-tog.active.tog-Tomado    { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
+
+/* ── Estado select inline ── */
+.est-sel { padding: 4px 8px; border-radius: 10px; border: 1.5px solid #d0dce8; font-size: 12px; font-weight: 700; cursor: pointer; outline: none; min-width: 95px; transition: background .15s; }
+.est-sel.st-Pendiente { background: #E3F2FD; color: #1565C0; border-color: #90CAF9; }
+.est-sel.st-Abierto   { background: #FFF3E0; color: #E65100; border-color: #FFCC80; }
+.est-sel.st-Tomado    { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
+
+/* ── Rep toggle button ── */
+.rep-btn { padding: 4px 12px; border-radius: 12px; border: none; font-size: 11px; font-weight: 800; cursor: pointer; transition: all .12s; }
+.rep-btn.rep-si { background: #FFF3CD; color: #856404; }
+.rep-btn.rep-no { background: #F5F5F5; color: #aaa; }
+.rep-btn:hover { opacity: .8; }
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-pendiente { background: #E3F2FD; color: #1565C0; }
+.badge-tomado    { background: #E8F5E9; color: #2E7D32; }
+.badge-abierto   { background: #FFF3E0; color: #E65100; }
+.badge-si        { background: #FFF3CD; color: #856404; }
+.badge-no        { background: #F5F5F5; color: #888; }
+
+/* ── Botones ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all .18s;
+}
+.btn-primary { background: #0A3560; color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #1a5a9a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(10,53,96,.3); }
+.btn-orange  { background: #E65100; color: #fff; }
+.btn-orange:hover:not(:disabled)  { background: #F4511E; transform: translateY(-1px); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+
+/* ── Panel de acción ── */
+.action-panel {
+  text-align: center;
+  padding: 40px 20px;
+}
+.action-panel .icon { font-size: 48px; margin-bottom: 12px; }
+.action-panel h2    { font-size: 20px; font-weight: 700; color: #0A3560; margin-bottom: 8px; }
+.action-panel p     { color: #666; font-size: 14px; margin-bottom: 24px; max-width: 400px; margin-left: auto; margin-right: auto; }
+
+/* ── Mensajes ── */
+.msg {
+  margin-top: 18px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  display: none;
+}
+.msg.ok    { background: #E8F5E9; color: #2E7D32; border-left: 4px solid #4CAF50; }
+.msg.error { background: #FFEBEE; color: #C62828; border-left: 4px solid #EF5350; }
+.msg.info  { background: #E3F2FD; color: #1565C0; border-left: 4px solid #2196F3; }
+.msg.show  { display: block; }
+
+/* ── Spinner ── */
+.spinner {
+  display: none;
+  width: 22px; height: 22px;
+  border: 3px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+.spinner.show { display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Formulario búsqueda ── */
+.search-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.form-group select, .form-group input {
+  width: 100%;
+  border: 1.5px solid #d0dce8;
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+.form-group select:focus, .form-group input:focus { border-color: #345D8B; }
+
+/* ── Resultados vuelo ── */
+.resultado-vuelo {
+  background: #fff;
+  border: 2px solid #e0e8f0;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.resultado-vuelo:first-child { border-color: #2E7D32; background: #f0faf0; }
+.vuelo-info { display: flex; align-items: center; gap: 20px; }
+.vuelo-num  { font-size: 16px; font-weight: 800; color: #0A3560; }
+.vuelo-precio { text-align: right; }
+.precio-total   { font-size: 20px; font-weight: 800; color: #1565C0; }
+.precio-detalle { font-size: 11px; color: #888; }
+.mejor-tag {
+  background: #2E7D32; color: #fff;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+  margin-left: 8px; vertical-align: middle;
+}
+
+/* ── Cambios de horario ── */
+.cambio-row {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.cambio-code { font-weight: 800; font-size: 16px; color: #0A3560; }
+.cambio-hora .antes { color: #888; text-decoration: line-through; }
+.cambio-hora .ahora { color: #C62828; font-weight: 700; }
+.diff-atraso   { color: #E65100; font-weight: 700; }
+.diff-adelanto { color: #2E7D32; font-weight: 700; }
+.estado-abierto   { background: #1565C0; color: #fff; }
+.estado-noabierto { background: #4CAF50; color: #fff; }
+
+/* ── Stats bar (tab Reservas) ── */
+.stats {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.stat-card {
+  background: #fff; border-radius: 8px; padding: 12px 18px;
+  text-align: center; min-width: 90px; flex: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  border-top: 3px solid #ccc;
+}
+.stat-card.pendiente { border-top-color: #1565C0; }
+.stat-card.tomado    { border-top-color: #2E7D32; }
+.stat-card.abierto   { border-top-color: #E65100; }
+.stat-num   { font-size: 26px; font-weight: 800; }
+.stat-label { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; }
+
+/* ── Indicadores ── */
+.ind-cards {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px;
+}
+.ind-stat-card {
+  background: #fff; border-radius: 10px;
+  padding: 16px 22px; text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border-top: 4px solid #ccc;
+  min-width: 100px; flex: 1;
+}
+.ind-stat-num   { font-size: 34px; font-weight: 800; }
+.ind-stat-label { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; margin-top: 4px; }
+
+.ind-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.ind-bar-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 9px; font-size: 13px;
+}
+.ind-bar-label { min-width: 100px; color: #555; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ind-bar-track { flex: 1; height: 16px; background: #e8eef5; border-radius: 4px; overflow: hidden; }
+.ind-bar-fill  { height: 100%; background: #345D8B; border-radius: 4px; transition: width .5s ease; }
+.ind-bar-val   { min-width: 24px; text-align: right; font-weight: 700; color: #0A3560; font-size: 13px; }
+
+.proximo-card {
+  display: flex; align-items: center; gap: 16px;
+  padding: 13px 0; border-bottom: 1px solid #eee;
+}
+.proximo-card:last-child { border-bottom: none; }
+.proximo-fecha .dia  { font-size: 30px; font-weight: 800; color: #0A3560; line-height: 1; }
+.proximo-fecha .mes  { font-size: 11px; color: #888; text-transform: uppercase; font-weight: 700; }
+.proximo-ruta        { flex: 1; }
+.proximo-ruta .ruta  { font-weight: 700; font-size: 15px; }
+.proximo-ruta .detalle { font-size: 12px; color: #888; margin-top: 3px; }
+.proximo-meta        { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.dias-restantes      { font-size: 11px; color: #888; }
+.dias-restantes strong { display: block; font-size: 17px; color: #1565C0; font-weight: 800; }
+
+/* ── Calendario de precios ── */
+.tipo-toggle { display: flex; gap: 8px; margin-bottom: 18px; }
+.tipo-btn { padding: 8px 20px; border-radius: 20px; border: 2px solid #d0dce8; background: #fff; color: #555; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .15s; }
+.tipo-btn.active { background: #0A3560; color: #fff; border-color: #0A3560; }
+
+.btn-mes { background: #fff; border: 1.5px solid #d0dce8; border-radius: 6px; padding: 5px 12px; font-size: 17px; line-height: 1; cursor: pointer; color: #0A3560; transition: background .12s; }
+.btn-mes:hover { background: #e8eef5; }
+
+.buscar-layout { display: grid; grid-template-columns: 3fr 2fr; gap: 18px; align-items: start; }
+.resultado-panel-card { position: sticky; top: 16px; }
+.cal-section-wrap { display: flex; flex-direction: column; gap: 14px; }
+.cal-mes-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-mes-nombre { font-size: 14px; font-weight: 700; color: #0A3560; }
+.cal-titulo { font-size: 11px; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-header { text-align: center; font-size: 11px; font-weight: 700; color: #aaa; padding: 5px 0; }
+.cal-day { border-radius: 6px; padding: 5px 2px; text-align: center; cursor: pointer; min-height: 50px; transition: transform .12s, box-shadow .12s; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.cal-day:hover:not(.empty):not(.sin-vuelo) { transform: scale(1.07); box-shadow: 0 3px 10px rgba(0,0,0,.2); position: relative; z-index: 2; }
+.cal-day.empty     { cursor: default; }
+.cal-day.sin-vuelo { background: #f2f4f8; cursor: default; }
+.cal-day.sin-vuelo .cal-num { color: #c8cdd8; }
+.cal-num    { font-size: 12px; font-weight: 700; line-height: 1; }
+.cal-precio { font-size: 10px; font-weight: 800; margin-top: 3px; line-height: 1; }
+.cal-day.selected { outline: 3px solid #FFD700; outline-offset: 1px; position: relative; z-index: 3; }
+
+/* Solo 2 colores */
+.cal-day.p-cheap  { background: #2196F3; color: #fff; }
+.cal-day.p-normal { background: #E3F2FD; color: #1565C0; }
+
+/* Panel de resultados */
+.panel-seccion { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid #eee; }
+.panel-seccion:last-of-type { border-bottom: none; }
+.panel-leg   { font-size: 11px; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; }
+.panel-fecha { font-size: 15px; font-weight: 700; color: #0A3560; margin-bottom: 10px; }
+.panel-vuelo { padding: 9px 12px; border-radius: 7px; margin-bottom: 6px; border: 1.5px solid #e0e8f0; cursor: pointer; transition: all .12s; }
+.panel-vuelo:hover { border-color: #1565C0; background: #f5f9ff; }
+.panel-vuelo-sel   { border-color: #1565C0 !important; background: #E3F2FD !important; }
+.panel-vuelo-num   { font-size: 14px; font-weight: 800; color: #0A3560; }
+.panel-vuelo-hora  { font-size: 12px; color: #666; margin-top: 3px; }
+.panel-vuelo-precio { font-size: 14px; font-weight: 800; color: #1565C0; white-space: nowrap; }
+.panel-total { background: linear-gradient(135deg,#0A3560,#1a5a9a); color: #fff; border-radius: 10px; padding: 16px; margin-top: 14px; text-align: center; }
+.panel-total-label   { font-size: 11px; font-weight: 800; letter-spacing: 1px; opacity: 0.7; text-transform: uppercase; }
+.panel-total-precio  { font-size: 28px; font-weight: 800; margin: 5px 0 3px; }
+.panel-total-detalle { font-size: 11px; opacity: 0.65; }
+
+.leyenda { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: #555; }
+.leyenda-swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; vertical-align: middle; margin-right: 3px; }
+
+/* ── Estadísticas ── */
+.est-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 0; }
+.est-card  { background: #fff; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 6px rgba(0,0,0,.06); text-align: center; }
+.est-num   { font-size: 28px; font-weight: 800; color: #0A3560; line-height: 1; }
+.est-label { font-size: 12px; color: #888; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+
+.est-layout { display: grid; grid-template-columns: 3fr 2fr; gap: 18px; align-items: start; }
+.est-tabla-wrap { max-height: 420px; overflow-y: auto; border: 1px solid #e8eef5; border-radius: 7px; }
+.est-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.est-tabla thead th { position: sticky; top: 0; background: #0A3560; color: #fff; font-weight: 700; padding: 8px 10px; text-align: left; white-space: nowrap; }
+.est-tabla tbody tr:nth-child(even) { background: #f8fafc; }
+.est-tabla tbody tr:hover { background: #e8f0fe; }
+.est-tabla tbody td { padding: 7px 10px; border-bottom: 1px solid #edf0f5; white-space: nowrap; }
+.est-tabla tbody tr.fila-cambiada td { background: #fff8e1 !important; }
+.est-tabla tbody tr.fila-cambiada td:first-child { border-left: 3px solid #FFA000; }
+
+.cambio-row { padding: 10px 12px; border-radius: 7px; margin-bottom: 8px; border: 1px solid #f0e0c0; background: #fffdf5; }
+.cambio-row.retraso  { border-color: #ffccbc; background: #fff3ef; }
+.cambio-row.adelanto { border-color: #c8e6c9; background: #f1faf1; }
+.cambio-top  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.cambio-vuelo { font-weight: 800; font-size: 14px; color: #0A3560; }
+.cambio-badge { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
+.badge-retraso  { background: #ff5722; color: #fff; }
+.badge-adelanto { background: #4caf50; color: #fff; }
+.badge-otro     { background: #9c27b0; color: #fff; }
+.cambio-detalle { font-size: 12px; color: #666; }
+.cambio-diff { font-weight: 700; }
+.cambio-fecha-reg { font-size: 10px; color: #bbb; margin-top: 3px; }
+
+.dia-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.dia-nombre  { font-size: 12px; font-weight: 700; width: 80px; color: #444; flex-shrink: 0; }
+.dia-bar-bg  { flex: 1; height: 14px; background: #eef2f7; border-radius: 7px; overflow: hidden; }
+.dia-bar-fill { height: 100%; background: #2196F3; border-radius: 7px; transition: width .3s; }
+.dia-bar-fill.top { background: #FF5722; }
+.dia-count   { font-size: 12px; font-weight: 800; color: #444; min-width: 22px; text-align: right; }
+
+.vuelo-stat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.vuelo-stat-num { font-size: 13px; font-weight: 800; color: #0A3560; min-width: 70px; }
+.vuelo-stat-bar-bg  { flex: 1; height: 12px; background: #eef2f7; border-radius: 6px; overflow: hidden; }
+.vuelo-stat-bar-fill { height: 100%; background: #9C27B0; border-radius: 6px; transition: width .3s; }
+.vuelo-stat-count { font-size: 12px; font-weight: 800; color: #666; min-width: 22px; text-align: right; }
+
+/* ── Smiles ── */
+.sm-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.sm-header h2 { margin: 0; color: #6B21A8; }
+.sm-header p  { margin: 0; font-size: 12px; color: #888; }
+
+.sm-tipo-btn.active { background: #6B21A8 !important; border-color: #6B21A8 !important; color: #fff !important; }
+
+.cal-day.sm-cheap  { background: #6B21A8; color: #fff; }
+.cal-day.sm-normal { background: #EDE7F6; color: #4A148C; }
+
+.sm-fare-cards { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
+.sm-fare-card {
+  border-radius: 9px; padding: 12px 15px;
+  border: 2px solid transparent; cursor: default;
+}
+.sm-fare-smiles { background: #F3E8FF; border-color: #AB47BC; }
+.sm-fare-club   { background: #E8F5E9; border-color: #66BB6A; }
+.sm-fare-money  { background: #FFF8E1; border-color: #FFA726; }
+.sm-fare-tipo   { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.sm-fare-smiles .sm-fare-tipo { color: #6B21A8; }
+.sm-fare-club   .sm-fare-tipo { color: #2E7D32; }
+.sm-fare-money  .sm-fare-tipo { color: #E65100; }
+.sm-fare-millas { font-size: 21px; font-weight: 800; line-height: 1.15; }
+.sm-fare-smiles .sm-fare-millas { color: #4A148C; }
+.sm-fare-club   .sm-fare-millas { color: #1B5E20; }
+.sm-fare-money  .sm-fare-millas { color: #BF360C; }
+.sm-fare-sub    { font-size: 11px; color: #888; margin-top: 3px; }
+.sm-fare-ahorro { font-size: 11px; font-weight: 700; color: #2E7D32; }
+
+.sm-vuelo-card {
+  padding: 11px 14px; border-radius: 8px;
+  border: 1.5px solid #e0ddf0; margin-bottom: 7px;
+  cursor: pointer; transition: all .12s;
+}
+.sm-vuelo-card:hover  { border-color: #7B1FA2; background: #FAF5FF; }
+.sm-vuelo-card.sm-sel { border-color: #6B21A8; background: #EDE7F6; }
+.sm-vuelo-top    { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.sm-vuelo-num    { font-size: 14px; font-weight: 800; color: #4A148C; }
+.sm-vuelo-stops  { font-size: 11px; padding: 2px 9px; border-radius: 10px; font-weight: 700; }
+.sm-stop-directo { background: #E8F5E9; color: #2E7D32; }
+.sm-stop-escala  { background: #FFF3E0; color: #E65100; }
+.sm-vuelo-hora   { font-size: 13px; font-weight: 700; color: #333; }
+.sm-vuelo-meta   { font-size: 11px; color: #999; margin-top: 2px; }
+.sm-asientos     { color: #E65100; font-weight: 700; }
+
+.sm-panel-ruta { font-size: 13px; color: #7B1FA2; font-weight: 700; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid #EDE7F6; }
+.sm-panel-leg-titulo { font-size: 11px; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; }
+.sm-panel-fecha { font-size: 15px; font-weight: 700; color: #4A148C; margin-bottom: 10px; }
+.sm-sep { border: none; border-top: 1px solid #EDE7F6; margin: 14px 0; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .est-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .search-form { grid-template-columns: 1fr 1fr; }
+  .search-form .btn { grid-column: 1 / -1; justify-content: center; }
+  .ind-grid { grid-template-columns: 1fr; }
+  nav button { padding: 11px 13px; font-size: 12px; }
+  .est-cards { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .search-form { grid-template-columns: 1fr; }
+  .est-cards { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">✈</div>
+  <div>
+    <h1>JetSMART — Mis Reservas</h1>
+    <p id="header-sub">Cargando...</p>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('reservas')">✈ Reservas</button>
+  <button onclick="showTab('indicadores')">📊 Indicadores</button>
+  <button onclick="showTab('importar')">📥 Importar Gmail</button>
+  <button onclick="showTab('verificar')">🔔 Verificar Horarios</button>
+  <button onclick="showTab('buscar')">🔍 Buscar Vuelos</button>
+  <button onclick="showTab('estadisticas')">📈 Estadísticas</button>
+  <button onclick="showTab('smiles')">🎖 Smiles</button>
+</nav>
+
+<main>
+
+  <!-- ═══ TAB: RESERVAS ═══ -->
+  <div id="tab-reservas" class="tab-content active">
+
+    <div class="stats">
+      <div class="stat-card pendiente"><div class="stat-num" id="cnt-pendiente">–</div><div class="stat-label">Pendiente</div></div>
+      <div class="stat-card abierto">  <div class="stat-num" id="cnt-abierto">–</div>  <div class="stat-label">Abierto</div></div>
+      <div class="stat-card tomado">   <div class="stat-num" id="cnt-tomado">–</div>   <div class="stat-label">Tomado</div></div>
+    </div>
+
+    <div class="card">
+      <div class="filtros">
+        <div>
+          <label>Buscar</label>
+          <input type="text" id="f-texto" placeholder="Código, ciudad, vuelo..." oninput="renderTabla()">
+        </div>
+        <div>
+          <label>Estado</label>
+          <div class="estado-toggles">
+            <button class="est-tog tog-Pendiente active" data-est="Pendiente" onclick="toggleEstadoFiltro(this)">Pendiente</button>
+            <button class="est-tog tog-Abierto active"   data-est="Abierto"   onclick="toggleEstadoFiltro(this)">Abierto</button>
+            <button class="est-tog tog-Tomado active"    data-est="Tomado"    onclick="toggleEstadoFiltro(this)">Tomado</button>
+          </div>
+        </div>
+        <div>
+          <label>Mes</label>
+          <select id="f-mes" onchange="renderTabla()">
+            <option value="">Todos</option>
+            <option>Enero</option><option>Febrero</option><option>Marzo</option>
+            <option>Abril</option><option>Mayo</option><option>Junio</option>
+            <option>Julio</option><option>Agosto</option><option>Septiembre</option>
+            <option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+          </select>
+        </div>
+        <div>
+          <label>Titular</label>
+          <select id="f-titular" onchange="renderTabla()">
+            <option value="">Todos</option>
+          </select>
+        </div>
+      </div>
+      <div class="tabla-wrap" id="tabla-container">
+        <div class="no-data">Cargando reservas...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: INDICADORES ═══ -->
+  <div id="tab-indicadores" class="tab-content">
+
+    <div class="card" style="padding:16px 20px;margin-bottom:14px">
+      <div class="filtros" style="margin-bottom:0">
+        <div>
+          <label>Año</label>
+          <select id="ind-anio" onchange="renderIndicadores()">
+            <option value="">Todos los años</option>
+          </select>
+        </div>
+        <div>
+          <label>Titular</label>
+          <select id="ind-titular" onchange="renderIndicadores()">
+            <option value="">Todos</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="ind-cards" id="ind-cards"></div>
+
+    <div class="ind-grid">
+      <div class="card">
+        <h2>Reservas por mes</h2>
+        <div id="ind-meses"></div>
+      </div>
+      <div class="card">
+        <h2>Rutas más frecuentes</h2>
+        <div id="ind-destinos"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Próximos viajes</h2>
+      <div id="ind-proximos"></div>
+    </div>
+
+  </div>
+
+  <!-- ═══ TAB: IMPORTAR ═══ -->
+  <div id="tab-importar" class="tab-content">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span style="font-size:32px">📥</span>
+          <div>
+            <h2 style="margin-bottom:3px">Importar desde Gmail</h2>
+            <p>Busca correos de confirmación de JetSMART y agrega las reservas nuevas.</p>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="btn-importar" onclick="importar()">
+          <span id="sp-importar" class="spinner"></span>
+          <span id="txt-importar">Importar ahora</span>
+        </button>
+      </div>
+      <div id="msg-importar" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: VERIFICAR ═══ -->
+  <div id="tab-verificar" class="tab-content">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span style="font-size:32px">🔔</span>
+          <div>
+            <h2 style="margin-bottom:3px">Verificar Horarios</h2>
+            <p>Compara los horarios de tus reservas <strong>Pendiente</strong> con los actuales de JetSMART.</p>
+          </div>
+        </div>
+        <button class="btn btn-orange" id="btn-verificar" onclick="verificar()">
+          <span id="sp-verificar" class="spinner"></span>
+          <span id="txt-verificar">Verificar ahora</span>
+        </button>
+      </div>
+      <div id="msg-verificar" class="msg"></div>
+      <div id="cambios-container"></div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: BUSCAR ═══ -->
+  <div id="tab-buscar" class="tab-content">
+
+    <!-- Controles -->
+    <div class="card">
+      <div class="tipo-toggle">
+        <button id="tipo-btn-ida" class="tipo-btn active" onclick="setTripTipo('ida')">→ Solo ida</button>
+        <button id="tipo-btn-rv"  class="tipo-btn"        onclick="setTripTipo('rv')">⇄ Ida y vuelta</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+        <div class="form-group" style="flex:1;min-width:140px">
+          <label>Origen</label>
+          <select id="b-origen"></select>
+        </div>
+        <div class="form-group" style="flex:1;min-width:140px">
+          <label>Destino</label>
+          <select id="b-destino"></select>
+        </div>
+        <div class="form-group">
+          <label>Fecha ida</label>
+          <input type="date" id="b-fecha-ida">
+        </div>
+        <div class="form-group" id="fecha-vuelta-wrap" style="display:none">
+          <label>Fecha vuelta</label>
+          <input type="date" id="b-fecha-vuelta">
+        </div>
+        <button class="btn btn-primary" id="btn-buscar-cal" onclick="buscarCalendario()">
+          <span id="sp-buscar" class="spinner"></span>
+          <span id="txt-buscar">Buscar</span>
+        </button>
+      </div>
+      <div id="msg-buscar" class="msg" style="margin-top:12px;margin-bottom:0"></div>
+    </div>
+
+    <!-- Calendarios + Panel -->
+    <div id="cal-section" style="display:none">
+      <div class="buscar-layout">
+
+        <!-- Izquierda: calendarios apilados -->
+        <div>
+          <div class="cal-section-wrap" id="cal-section-wrap">
+            <div class="card" style="padding:16px 18px">
+              <div class="cal-titulo" id="cal-titulo-ida"></div>
+              <div id="cal-ida"></div>
+            </div>
+            <div class="card" id="cal-vuelta-sec" style="display:none;padding:16px 18px">
+              <div class="cal-titulo" id="cal-titulo-vuelta"></div>
+              <div id="cal-vuelta"></div>
+            </div>
+          </div>
+          <!-- Leyenda -->
+          <div class="card" style="padding:10px 16px;margin-top:0">
+            <div class="leyenda">
+              <span style="font-weight:700;color:#555">Precio:</span>
+              <span><span class="leyenda-swatch" style="background:#2196F3"></span>Más económico</span>
+              <span><span class="leyenda-swatch" style="background:#E3F2FD;border:1px solid #90CAF9"></span>Disponible</span>
+              <span><span class="leyenda-swatch" style="background:#f2f4f8;border:1px solid #ddd"></span>Sin vuelo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Derecha: panel de resultados -->
+        <div class="card resultado-panel-card">
+          <h2 style="margin-bottom:16px">Vuelos seleccionados</h2>
+          <div id="panel-placeholder" style="color:#888;font-size:13px;padding:16px 0;text-align:center;line-height:1.6">
+            Hacé clic en un día del<br>calendario para ver los vuelos.
+          </div>
+          <div id="resultado-panel" style="display:none">
+            <div id="panel-body"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ TAB: ESTADÍSTICAS ═══ -->
+  <div id="tab-estadisticas" class="tab-content">
+
+    <!-- Cabecera ruta -->
+    <div class="card" style="padding:18px 22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+        <div>
+          <h2 style="margin-bottom:4px">Estadísticas de cambio de horario</h2>
+          <p style="color:#888;font-size:13px;margin:0">
+            ✈ <strong>RES → AEP</strong> &nbsp;·&nbsp; Resistencia → Buenos Aires (Aeroparque)
+            &nbsp;·&nbsp; Hoy al 31/12/2026
+          </p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="btn-cargar-base" onclick="cargarBase()">
+            <span id="sp-cargar" class="spinner"></span>
+            <span id="txt-cargar">Actualizar base</span>
+          </button>
+          <button class="btn btn-orange" id="btn-verificar-est" onclick="verificarEstadisticas()">
+            <span id="sp-verificar-est" class="spinner"></span>
+            <span id="txt-verificar-est">Verificar cambios</span>
+          </button>
+        </div>
+      </div>
+      <div id="msg-estadisticas" class="msg" style="margin-top:12px;margin-bottom:0"></div>
+    </div>
+
+    <!-- Tarjetas de resumen -->
+    <div class="est-cards" id="est-cards" style="display:none">
+      <div class="est-card">
+        <div class="est-num" id="est-total-vuelos">–</div>
+        <div class="est-label">Vuelos en base</div>
+      </div>
+      <div class="est-card">
+        <div class="est-num" id="est-total-cambios">–</div>
+        <div class="est-label">Cambios registrados</div>
+      </div>
+      <div class="est-card" id="est-card-dia">
+        <div class="est-num" id="est-dia-top">–</div>
+        <div class="est-label">Día más afectado</div>
+      </div>
+      <div class="est-card" id="est-card-vuelo">
+        <div class="est-num" id="est-vuelo-top">–</div>
+        <div class="est-label">Vuelo más afectado</div>
+      </div>
+    </div>
+
+    <!-- Layout principal -->
+    <div id="est-main" style="display:none">
+      <div class="est-layout">
+
+        <!-- Izquierda: tabla de vuelos -->
+        <div>
+          <div class="card" style="padding:16px 18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+              <h3 style="margin:0">Vuelos programados</h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="text" id="est-filtro-fecha" placeholder="Filtrar por fecha (ej: 2026-07)" style="padding:6px 10px;border:1.5px solid #d0dce8;border-radius:6px;font-size:13px;width:160px" oninput="filtrarTablaVuelos()">
+                <span id="est-count-vuelos" style="font-size:12px;color:#888"></span>
+              </div>
+            </div>
+            <div class="est-tabla-wrap">
+              <table class="est-tabla" id="est-tabla">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Vuelo</th>
+                    <th>Origen</th>
+                    <th>Destino</th>
+                    <th>Salida</th>
+                    <th>Llegada</th>
+                  </tr>
+                </thead>
+                <tbody id="est-tabla-body"></tbody>
+              </table>
+            </div>
+            <div id="est-base-ts" style="font-size:11px;color:#bbb;margin-top:8px;text-align:right"></div>
+          </div>
+        </div>
+
+        <!-- Derecha: cambios + estadísticas -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- Cambios recientes -->
+          <div class="card" style="padding:16px 18px">
+            <h3 style="margin-bottom:12px">Últimos cambios detectados</h3>
+            <div id="est-cambios-lista">
+              <div style="color:#aaa;font-size:13px;text-align:center;padding:16px 0">
+                Sin cambios registrados aún.
+              </div>
+            </div>
+          </div>
+
+          <!-- Probabilidad por día -->
+          <div class="card" style="padding:16px 18px">
+            <h3 style="margin-bottom:4px">Probabilidad de cambio por día</h3>
+            <p style="font-size:12px;color:#888;margin:0 0 12px">Basado en historial registrado</p>
+            <div id="est-dias-stats"></div>
+          </div>
+
+          <!-- Vuelos con más cambios -->
+          <div class="card" style="padding:16px 18px">
+            <h3 style="margin-bottom:12px">Vuelos con más cambios</h3>
+            <div id="est-vuelos-stats"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div id="est-vacio" class="card" style="padding:32px;text-align:center;color:#888">
+      <div style="font-size:40px;margin-bottom:12px">📊</div>
+      <p style="font-size:15px;font-weight:700;color:#444;margin-bottom:8px">No hay base de datos aún</p>
+      <p style="font-size:13px">Hacé clic en <strong>"Actualizar base"</strong> para obtener todos los vuelos RES→AEP y guardarlos como referencia.</p>
+    </div>
+
+  </div>
+
+
+  <!-- ═══ TAB: SMILES ═══ -->
+  <div id="tab-smiles" class="tab-content">
+
+    <!-- Controles -->
+    <div class="card">
+      <div class="sm-header">
+        <span style="font-size:26px">🎖</span>
+        <div>
+          <h2>Buscador Smiles</h2>
+          <p>Canjeá millas en vuelos Aerolíneas Argentinas y alianzas</p>
+        </div>
+      </div>
+
+      <div class="tipo-toggle" style="margin-bottom:14px">
+        <button id="sm-tipo-btn-ida" class="tipo-btn sm-tipo-btn active" onclick="smSetTipo('ida')">→ Solo ida</button>
+        <button id="sm-tipo-btn-rv"  class="tipo-btn sm-tipo-btn"        onclick="smSetTipo('rv')">⇄ Ida y vuelta</button>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+        <div class="form-group" style="flex:1;min-width:160px">
+          <label>Origen</label>
+          <select id="sm-origen" style="width:100%"></select>
+        </div>
+        <button onclick="smSwapRuta()" style="background:none;border:1.5px solid #d0dce8;border-radius:7px;padding:8px 11px;font-size:18px;cursor:pointer;color:#6B21A8;align-self:flex-end;margin-bottom:1px" title="Invertir ruta">⇄</button>
+        <div class="form-group" style="flex:1;min-width:160px">
+          <label>Destino</label>
+          <select id="sm-destino" style="width:100%"></select>
+        </div>
+        <button class="btn" id="btn-sm-buscar" onclick="smBuscarRuta()" style="background:#6B21A8;color:#fff;align-self:flex-end">
+          <span id="sp-sm-buscar" class="spinner"></span>
+          <span id="txt-sm-buscar">Buscar millas</span>
+        </button>
+      </div>
+      <div id="msg-smiles" class="msg" style="margin-top:12px;margin-bottom:0"></div>
+      <div style="margin-top:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+        <button onclick="smDiagnostico()" style="background:none;border:1px solid #d0dce8;border-radius:6px;padding:5px 12px;font-size:12px;color:#888;cursor:pointer">🔧 Probar proxy local</button>
+        <span id="sm-diag-result" style="font-size:12px;color:#888"></span>
+        <span style="font-size:11px;color:#aaa;margin-left:4px">· Proxy requerido: <code style="background:#f5f5f5;padding:1px 5px;border-radius:3px;font-size:11px">node smiles-proxy.js</code></span>
+      </div>
+    </div>
+
+    <!-- Calendarios + Panel -->
+    <div id="sm-cal-section" style="display:none">
+      <div class="buscar-layout">
+
+        <!-- Izquierda: calendarios -->
+        <div>
+          <div class="cal-section-wrap">
+            <div class="card" style="padding:16px 18px">
+              <div class="cal-titulo" id="sm-cal-titulo-ida" style="color:#6B21A8"></div>
+              <div id="sm-cal-ida"></div>
+            </div>
+            <div class="card" id="sm-cal-vuelta-sec" style="display:none;padding:16px 18px">
+              <div class="cal-titulo" id="sm-cal-titulo-vuelta" style="color:#6B21A8"></div>
+              <div id="sm-cal-vuelta"></div>
+            </div>
+          </div>
+          <div class="card" style="padding:10px 16px;margin-top:0">
+            <div class="leyenda">
+              <span style="font-weight:700;color:#555">Millas:</span>
+              <span><span class="leyenda-swatch" style="background:#6B21A8"></span>Más económico</span>
+              <span><span class="leyenda-swatch" style="background:#EDE7F6;border:1px solid #AB47BC"></span>Disponible</span>
+              <span><span class="leyenda-swatch" style="background:#f2f4f8;border:1px solid #ddd"></span>Sin vuelo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Derecha: panel de opciones -->
+        <div class="card resultado-panel-card">
+          <h2 style="margin-bottom:4px;color:#6B21A8">Opciones de canje</h2>
+          <p style="font-size:12px;color:#aaa;margin-bottom:14px">Seleccioná un día del calendario</p>
+          <div id="sm-panel-placeholder" style="color:#bbb;font-size:13px;padding:24px 0;text-align:center;line-height:1.7">
+            <div style="font-size:36px;margin-bottom:8px">🎖</div>
+            Hacé clic en un día disponible<br>para ver las opciones de canje.
+          </div>
+          <div id="sm-resultado-panel" style="display:none">
+            <div id="sm-panel-ida"></div>
+            <div id="sm-panel-vuelta"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+var reservas = [];
+var TABS     = ['reservas','indicadores','importar','verificar','buscar','estadisticas','smiles'];
+var CIUDADES = [
+  'Buenos Aires (AEP)','Buenos Aires (EZE)','Resistencia','Cordoba',
+  'Neuquen','Bariloche','Ushuaia','Mendoza','Florianopolis',
+  'Rio de Janeiro','Asuncion','Santiago de Chile',
+  'Puerto Iguazu','El Calafate','Tucuman'
+];
+var MESES_ORDEN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var MESES_CORTO = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+
+// ── Inicio ─────────────────────────────────────────────────────
+window.onload = function() {
+  poblarDropdownsBuscar();
+  initCalMes();
+  cargarReservas();
+};
+
+function poblarDropdownsBuscar() {
+  ['b-origen','b-destino'].forEach(function(id) {
+    var sel = document.getElementById(id);
+    CIUDADES.forEach(function(c) {
+      var opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      if (id === 'b-origen'  && c === 'Resistencia')        opt.selected = true;
+      if (id === 'b-destino' && c === 'Buenos Aires (AEP)') opt.selected = true;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+// ── Tabs ───────────────────────────────────────────────────────
+function showTab(nombre) {
+  document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('nav button').forEach(function(b)  { b.classList.remove('active'); });
+  document.getElementById('tab-'+nombre).classList.add('active');
+  var idx = TABS.indexOf(nombre);
+  if (idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
+  if (nombre === 'indicadores') renderIndicadores();
+  if (nombre === 'estadisticas') initEstadisticas();
+  if (nombre === 'smiles') initSmiles();
+}
+
+// ── Cargar reservas ────────────────────────────────────────────
+function cargarReservas() {
+  google.script.run
+    .withSuccessHandler(function(json) {
+      reservas = JSON.parse(json);
+      poblarFiltroTitular();
+      poblarFiltrosIndicadores();
+      renderTabla();
+      actualizarStats();
+      document.getElementById('header-sub').textContent = reservas.length + ' reserva(s) cargada(s)';
+    })
+    .withFailureHandler(function(err) {
+      document.getElementById('tabla-container').innerHTML =
+        '<div class="no-data">Error al cargar: ' + err.message + '</div>';
+    })
+    .getReservas();
+}
+
+function poblarFiltroTitular() {
+  var vistos = {};
+  reservas.forEach(function(r) {
+    r.titular.split(' / ').forEach(function(n) { vistos[n.trim()] = true; });
+  });
+  var sel = document.getElementById('f-titular');
+  sel.innerHTML = '<option value="">Todos</option>';
+  Object.keys(vistos).sort().forEach(function(n) {
+    var opt = document.createElement('option');
+    opt.value = n; opt.textContent = n;
+    sel.appendChild(opt);
+  });
+}
+
+function poblarFiltrosIndicadores() {
+  var anios = {};
+  reservas.forEach(function(r) { if (r.anio) anios[r.anio] = true; });
+  var selA = document.getElementById('ind-anio');
+  selA.innerHTML = '<option value="">Todos los años</option>';
+  Object.keys(anios).sort().reverse().forEach(function(a) {
+    var opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    selA.appendChild(opt);
+  });
+
+  var titulares = {};
+  reservas.forEach(function(r) {
+    r.titular.split(' / ').forEach(function(n) { titulares[n.trim()] = true; });
+  });
+  var selT = document.getElementById('ind-titular');
+  selT.innerHTML = '<option value="">Todos</option>';
+  Object.keys(titulares).sort().forEach(function(n) {
+    var opt = document.createElement('option');
+    opt.value = n; opt.textContent = n;
+    selT.appendChild(opt);
+  });
+}
+
+function actualizarStats() {
+  var counts = { Pendiente: 0, Abierto: 0, Tomado: 0 };
+  reservas.forEach(function(r) { if (counts[r.estado] !== undefined) counts[r.estado]++; });
+  document.getElementById('cnt-pendiente').textContent = counts.Pendiente;
+  document.getElementById('cnt-abierto').textContent   = counts.Abierto;
+  document.getElementById('cnt-tomado').textContent    = counts.Tomado;
+}
+
+// ── Tabla de reservas ──────────────────────────────────────────
+var filtroEstados = { Pendiente: true, Abierto: true, Tomado: true };
+
+function toggleEstadoFiltro(btn) {
+  var est = btn.getAttribute('data-est');
+  filtroEstados[est] = !filtroEstados[est];
+  btn.classList.toggle('active', filtroEstados[est]);
+  renderTabla();
+}
+
+function renderTabla() {
+  var texto   = document.getElementById('f-texto').value.toLowerCase();
+  var mes     = document.getElementById('f-mes').value;
+  var titular = document.getElementById('f-titular').value;
+
+  var activos = Object.keys(filtroEstados).filter(function(e) { return filtroEstados[e]; });
+  var filtrarEst = activos.length > 0 && activos.length < 3;
+
+  var filtradas = reservas.filter(function(r) {
+    if (filtrarEst && activos.indexOf(r.estado) < 0) return false;
+    if (mes     && r.mes     !== mes)     return false;
+    if (titular && r.titular.indexOf(titular) < 0) return false;
+    if (texto) {
+      var h = [r.codigo, r.titular, r.origenIda, r.destinoIda,
+               r.vueloIda, r.origenVuelta, r.destinoVuelta, r.vueloVuelta].join(' ').toLowerCase();
+      if (h.indexOf(texto) < 0) return false;
+    }
+    return true;
+  });
+
+  if (filtradas.length === 0) {
+    document.getElementById('tabla-container').innerHTML =
+      '<div class="no-data">Sin reservas para los filtros seleccionados.</div>';
+    return;
+  }
+
+  var html = '<table><thead><tr>' +
+    '<th>Código</th><th>Estado</th><th>Titular</th>' +
+    '<th>Ida</th><th>Vuelta</th><th>Rep.</th><th>Adm. Reserva</th>' +
+    '</tr></thead><tbody>';
+
+  filtradas.forEach(function(r) {
+    var ida = r.fechaIda
+      ? '<div class="col-ruta">' +
+          '<div class="fecha">' + r.fechaIda + '</div>' +
+          '<div class="ruta">' + r.origenIda + ' → ' + r.destinoIda + '</div>' +
+          '<div class="vuelo">' + (r.vueloIda||'') + ' <span class="hora">' + (r.salidaIda||'') + '</span></div>' +
+        '</div>'
+      : '<span style="color:#bbb">—</span>';
+
+    var vuelta = r.fechaVuelta
+      ? '<div class="col-ruta">' +
+          '<div class="fecha">' + r.fechaVuelta + '</div>' +
+          '<div class="ruta">' + r.origenVuelta + ' → ' + r.destinoVuelta + '</div>' +
+          '<div class="vuelo">' + (r.vueloVuelta||'') + ' <span class="hora">' + (r.salidaVuelta||'') + '</span></div>' +
+        '</div>'
+      : '<span style="color:#bbb">—</span>';
+
+    var repVal = (r.reprog === 'Si' || r.reprog === 'Sí') ? 'Si' : 'No';
+    var repBtn = '<button class="rep-btn rep-' + repVal.toLowerCase() + '" ' +
+                 'id="rep-' + r.codigo + '" data-val="' + repVal + '" ' +
+                 'onclick="toggleRep(\'' + r.codigo + '\',this)">' + (repVal === 'Si' ? 'Sí' : 'No') + '</button>';
+
+    var estSel = '<select class="est-sel st-' + r.estado + '" id="est-' + r.codigo + '" ' +
+                 'onchange="cambiarCampo(\'' + r.codigo + '\',\'estado\',this.value,this)">' +
+                 '<option value="Pendiente"' + (r.estado==='Pendiente'?' selected':'') + '>Pendiente</option>' +
+                 '<option value="Abierto"'   + (r.estado==='Abierto'  ?' selected':'') + '>Abierto</option>' +
+                 '<option value="Tomado"'    + (r.estado==='Tomado'   ?' selected':'') + '>Tomado</option>' +
+                 '</select>';
+
+    var verUrl = 'https://booking.jetsmart.com/Booking/Retrieve?rl=' + r.codigo + '&ln=sanchez';
+    html += '<tr>' +
+      '<td class="col-code">' + r.codigo + '</td>' +
+      '<td>' + estSel + '</td>' +
+      '<td class="col-titular">' + r.titular + '</td>' +
+      '<td>' + ida + '</td>' +
+      '<td>' + vuelta + '</td>' +
+      '<td>' + repBtn + '</td>' +
+      '<td><a href="' + verUrl + '" target="_blank" class="btn btn-primary" style="padding:6px 12px;font-size:12px;white-space:nowrap">Adm. Reserva</a></td>' +
+      '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('tabla-container').innerHTML = html;
+}
+
+function cambiarCampo(codigo, campo, valor, el) {
+  if (campo === 'estado') {
+    el.className = 'est-sel st-' + valor;
+    for (var i = 0; i < reservas.length; i++) {
+      if (reservas[i].codigo === codigo) { reservas[i].estado = valor; break; }
+    }
+    actualizarStats();
+  }
+  google.script.run
+    .withSuccessHandler(function() {})
+    .withFailureHandler(function(err) { alert('Error al guardar: ' + err.message); })
+    .actualizarCampoWeb(codigo, campo, valor);
+}
+
+function toggleRep(codigo, btn) {
+  var curVal = btn.getAttribute('data-val');
+  var newVal = (curVal === 'Si') ? 'No' : 'Si';
+  btn.setAttribute('data-val', newVal);
+  btn.textContent  = newVal === 'Si' ? 'Sí' : 'No';
+  btn.className    = 'rep-btn rep-' + newVal.toLowerCase();
+  for (var i = 0; i < reservas.length; i++) {
+    if (reservas[i].codigo === codigo) { reservas[i].reprog = newVal; break; }
+  }
+  google.script.run
+    .withSuccessHandler(function() {})
+    .withFailureHandler(function(err) { alert('Error al guardar: ' + err.message); })
+    .actualizarCampoWeb(codigo, 'rep', newVal);
+}
+
+// ── Indicadores ────────────────────────────────────────────────
+function renderIndicadores() {
+  var anio    = document.getElementById('ind-anio').value;
+  var titular = document.getElementById('ind-titular').value;
+
+  var data = reservas.filter(function(r) {
+    if (anio    && r.anio !== anio) return false;
+    if (titular && r.titular.indexOf(titular) < 0) return false;
+    return true;
+  });
+
+  renderIndCards(data);
+  renderIndMeses(data);
+  renderIndDestinos(data);
+  renderIndProximos(data);
+}
+
+function renderIndCards(data) {
+  var total   = data.length;
+  var pend    = data.filter(function(r) { return r.estado === 'Pendiente'; }).length;
+  var abierto = data.filter(function(r) { return r.estado === 'Abierto'; }).length;
+  var tomado  = data.filter(function(r) { return r.estado === 'Tomado'; }).length;
+  var reprog  = data.filter(function(r) { return r.reprog === 'Si' || r.reprog === 'Sí'; }).length;
+
+  var defs = [
+    { num: total,   label: 'Total',       color: '#0A3560' },
+    { num: pend,    label: 'Pendiente',    color: '#1565C0' },
+    { num: abierto, label: 'Abierto',      color: '#E65100' },
+    { num: tomado,  label: 'Tomado',       color: '#2E7D32' },
+    { num: reprog,  label: 'Reprogramado', color: '#7B1FA2' }
+  ];
+
+  document.getElementById('ind-cards').innerHTML = defs.map(function(c) {
+    return '<div class="ind-stat-card" style="border-top-color:' + c.color + '">' +
+           '<div class="ind-stat-num" style="color:' + c.color + '">' + c.num + '</div>' +
+           '<div class="ind-stat-label">' + c.label + '</div>' +
+           '</div>';
+  }).join('');
+}
+
+function renderIndMeses(data) {
+  var conteo = {};
+  MESES_ORDEN.forEach(function(m) { conteo[m] = 0; });
+  data.forEach(function(r) { if (r.mes && conteo[r.mes] !== undefined) conteo[r.mes]++; });
+
+  var max = Math.max.apply(null, MESES_ORDEN.map(function(m) { return conteo[m]; })) || 1;
+
+  var html = MESES_ORDEN.map(function(m) {
+    var v = conteo[m];
+    if (v === 0) return '';
+    var pct = Math.round((v / max) * 100);
+    return '<div class="ind-bar-row">' +
+           '<div class="ind-bar-label">' + m + '</div>' +
+           '<div class="ind-bar-track"><div class="ind-bar-fill" style="width:' + pct + '%"></div></div>' +
+           '<div class="ind-bar-val">' + v + '</div>' +
+           '</div>';
+  }).join('');
+
+  document.getElementById('ind-meses').innerHTML = html || '<div class="no-data">Sin datos</div>';
+}
+
+function renderIndDestinos(data) {
+  var rutas = {};
+  data.forEach(function(r) {
+    if (r.origenIda && r.destinoIda) {
+      var k = r.origenIda + ' → ' + r.destinoIda;
+      rutas[k] = (rutas[k] || 0) + 1;
+    }
+  });
+
+  var sorted = Object.keys(rutas).sort(function(a, b) { return rutas[b] - rutas[a]; }).slice(0, 8);
+
+  if (sorted.length === 0) {
+    document.getElementById('ind-destinos').innerHTML = '<div class="no-data">Sin datos</div>';
+    return;
+  }
+
+  var max = rutas[sorted[0]] || 1;
+  document.getElementById('ind-destinos').innerHTML = sorted.map(function(ruta) {
+    var v   = rutas[ruta];
+    var pct = Math.round((v / max) * 100);
+    return '<div class="ind-bar-row">' +
+           '<div class="ind-bar-label" style="min-width:180px">' + ruta + '</div>' +
+           '<div class="ind-bar-track"><div class="ind-bar-fill" style="width:' + pct + '%;background:#1565C0"></div></div>' +
+           '<div class="ind-bar-val">' + v + '</div>' +
+           '</div>';
+  }).join('');
+}
+
+function renderIndProximos(data) {
+  var hoyMs = new Date(); hoyMs.setHours(0,0,0,0); hoyMs = hoyMs.getTime();
+
+  function fechaMs(dmy) {
+    if (!dmy) return null;
+    var p = dmy.split('/');
+    if (p.length < 3) return null;
+    return new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0])).getTime();
+  }
+
+  var proximos = data
+    .filter(function(r) { var ms = fechaMs(r.fechaIda); return ms !== null && ms >= hoyMs; })
+    .sort(function(a, b) { return fechaMs(a.fechaIda) - fechaMs(b.fechaIda); })
+    .slice(0, 6);
+
+  if (proximos.length === 0) {
+    document.getElementById('ind-proximos').innerHTML = '<div class="no-data">No hay viajes próximos.</div>';
+    return;
+  }
+
+  document.getElementById('ind-proximos').innerHTML = proximos.map(function(r) {
+    var p    = r.fechaIda.split('/');
+    var ms   = fechaMs(r.fechaIda);
+    var dias = Math.round((ms - hoyMs) / 86400000);
+    var dLabel = dias === 0 ? 'hoy' : dias === 1 ? 'mañana' : 'en ' + dias + ' días';
+    var badgeClass = { Pendiente:'badge-pendiente', Tomado:'badge-tomado', Abierto:'badge-abierto' }[r.estado] || 'badge-no';
+
+    return '<div class="proximo-card">' +
+           '<div class="proximo-fecha">' +
+             '<div class="dia">' + p[0] + '</div>' +
+             '<div class="mes">' + MESES_CORTO[parseInt(p[1])-1] + ' ' + p[2] + '</div>' +
+           '</div>' +
+           '<div class="proximo-ruta">' +
+             '<div class="ruta">' + (r.origenIda||'?') + ' → ' + (r.destinoIda||'?') + '</div>' +
+             '<div class="detalle">' + (r.vueloIda||'') + (r.salidaIda ? ' · ' + r.salidaIda : '') + ' · ' + r.titular + '</div>' +
+           '</div>' +
+           '<div class="proximo-meta">' +
+             '<span class="badge ' + badgeClass + '">' + r.estado + '</span>' +
+             '<div class="dias-restantes"><strong>' + (dias === 0 ? '¡' : dias) + '</strong>' + dLabel + '</div>' +
+           '</div>' +
+           '</div>';
+  }).join('');
+}
+
+// ── Importar desde Gmail ───────────────────────────────────────
+function importar() {
+  var btn = document.getElementById('btn-importar');
+  btn.disabled = true;
+  document.getElementById('sp-importar').classList.add('show');
+  document.getElementById('txt-importar').textContent = 'Buscando...';
+  ocultarMsg('msg-importar');
+
+  google.script.run
+    .withSuccessHandler(function(json) {
+      var r = JSON.parse(json);
+      btn.disabled = false;
+      document.getElementById('sp-importar').classList.remove('show');
+      document.getElementById('txt-importar').textContent = 'Importar ahora';
+      mostrarMsg('msg-importar',
+        r.added > 0 ? '✅ ' + r.added + ' reserva(s) nueva(s) importada(s).' : 'ℹ Sin reservas nuevas en el correo.',
+        r.added > 0 ? 'ok' : 'info');
+      if (r.added > 0) cargarReservas();
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      document.getElementById('sp-importar').classList.remove('show');
+      document.getElementById('txt-importar').textContent = 'Importar ahora';
+      mostrarMsg('msg-importar', '❌ Error: ' + err.message, 'error');
+    })
+    .importarGmailWeb();
+}
+
+// ── Verificar horarios ─────────────────────────────────────────
+function verificar() {
+  var btn = document.getElementById('btn-verificar');
+  btn.disabled = true;
+  document.getElementById('sp-verificar').classList.add('show');
+  document.getElementById('txt-verificar').textContent = 'Verificando...';
+  ocultarMsg('msg-verificar');
+  document.getElementById('cambios-container').innerHTML = '';
+
+  google.script.run
+    .withSuccessHandler(function(json) {
+      var cambios = JSON.parse(json);
+      btn.disabled = false;
+      document.getElementById('sp-verificar').classList.remove('show');
+      document.getElementById('txt-verificar').textContent = 'Verificar ahora';
+
+      if (cambios.length === 0) {
+        mostrarMsg('msg-verificar', '✅ Sin cambios de horario. Todos los vuelos están en el horario original.', 'ok');
+        return;
+      }
+
+      mostrarMsg('msg-verificar', '⚠️ Se detectaron ' + cambios.length + ' cambio(s) de horario.', 'error');
+
+      document.getElementById('cambios-container').innerHTML = cambios.map(function(c) {
+        var diff    = c.diff;
+        var abs     = Math.abs(diff);
+        var h = Math.floor(abs/60), m = abs%60;
+        var dStr    = (diff > 0 ? '+' : '-') + (h > 0 ? h+'h ' : '') + (m > 0 ? m+'min' : '') +
+                      ' (' + (diff > 0 ? 'atraso' : 'adelanto') + ')';
+        var diffCls = diff > 0 ? 'diff-atraso' : 'diff-adelanto';
+        var estCls  = c.estado === 'Abierto' ? 'estado-abierto' : 'estado-noabierto';
+        return '<div class="cambio-row card">' +
+          '<div class="cambio-code">' + c.codigo + '</div>' +
+          '<span class="badge">' + c.leg + '</span>' +
+          '<span style="font-size:13px;color:#555">' + c.vuelo + ' · ' + c.fecha + '</span>' +
+          '<div class="cambio-hora">' +
+            '<span class="antes">' + c.horaAntes + '</span> → <span class="ahora">' + c.horaAhora + '</span>' +
+          '</div>' +
+          '<span class="' + diffCls + '">' + dStr + '</span>' +
+          '<span class="badge ' + estCls + '">' + c.estado + '</span>' +
+          '</div>';
+      }).join('');
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      document.getElementById('sp-verificar').classList.remove('show');
+      document.getElementById('txt-verificar').textContent = 'Verificar ahora';
+      mostrarMsg('msg-verificar', '❌ Error: ' + err.message, 'error');
+    })
+    .verificarHorariosWeb();
+}
+
+// ── Buscar vuelos — Calendario ────────────────────────────────
+var calTipo        = 'ida';
+var calAllIda      = {};   // todos los datos de la ruta (todas las fechas)
+var calAllVuelta   = {};
+var calAnioIda     = 0;    // mes visible en el calendario ida
+var calMesIdaIdx   = 0;
+var calAnioVuelta  = 0;
+var calMesVueltaIdx = 0;
+var calSelIda      = null; // fecha seleccionada YYYY-MM-DD
+var calSelVuelta   = null;
+var calFlightIda   = null; // vuelo seleccionado (objeto)
+var calFlightVuelta = null;
+
+var NOMBRES_MES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var DIAS_SEM    = ['L','M','M','J','V','S','D'];
+
+function initCalMes() {
+  var hoy = new Date();
+  calAnioIda = calAnioVuelta = hoy.getFullYear();
+  calMesIdaIdx = calMesVueltaIdx = hoy.getMonth();
+  // Fecha de hoy por defecto
+  var y = hoy.getFullYear(), m = String(hoy.getMonth()+1).padStart(2,'0'), d = String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('b-fecha-ida').value = y+'-'+m+'-'+d;
+}
+
+function setTripTipo(tipo) {
+  calTipo = tipo;
+  document.getElementById('tipo-btn-ida').classList.toggle('active', tipo === 'ida');
+  document.getElementById('tipo-btn-rv').classList.toggle('active',  tipo === 'rv');
+  document.getElementById('fecha-vuelta-wrap').style.display  = tipo === 'rv' ? '' : 'none';
+  document.getElementById('cal-vuelta-sec').style.display     = (tipo === 'rv' && Object.keys(calAllVuelta).length > 0) ? '' : 'none';
+}
+
+function buscarCalendario() {
+  var origen  = document.getElementById('b-origen').value;
+  var destino = document.getElementById('b-destino').value;
+  if (origen === destino) { mostrarMsg('msg-buscar', 'Origen y destino no pueden ser iguales.', 'error'); return; }
+
+  // Inicializar meses desde los date pickers
+  var fechaIda = document.getElementById('b-fecha-ida').value;
+  if (fechaIda) {
+    var pi = fechaIda.split('-');
+    calAnioIda   = parseInt(pi[0]);
+    calMesIdaIdx = parseInt(pi[1]) - 1;
+    calSelIda    = fechaIda;
+  }
+  if (calTipo === 'rv') {
+    var fechaVuelta = document.getElementById('b-fecha-vuelta').value;
+    if (fechaVuelta) {
+      var pv = fechaVuelta.split('-');
+      calAnioVuelta   = parseInt(pv[0]);
+      calMesVueltaIdx = parseInt(pv[1]) - 1;
+      calSelVuelta    = fechaVuelta;
+    }
+  }
+
+  var btn = document.getElementById('btn-buscar-cal');
+  btn.disabled = true;
+  document.getElementById('sp-buscar').classList.add('show');
+  document.getElementById('txt-buscar').textContent = 'Buscando...';
+  ocultarMsg('msg-buscar');
+  document.getElementById('cal-section').style.display = 'none';
+  calAllIda = {}; calAllVuelta = {};
+  calFlightIda = null; calFlightVuelta = null;
+
+  var pendientes = calTipo === 'rv' ? 2 : 1;
+
+  function onDone() {
+    pendientes--;
+    if (pendientes > 0) return;
+    btn.disabled = false;
+    document.getElementById('sp-buscar').classList.remove('show');
+    document.getElementById('txt-buscar').textContent = 'Buscar';
+
+    var nIda    = Object.keys(calAllIda).length;
+    var nVuelta = Object.keys(calAllVuelta).length;
+    if (nIda + nVuelta === 0) {
+      mostrarMsg('msg-buscar', 'Sin vuelos disponibles para esa ruta.', 'info');
+      return;
+    }
+    mostrarMsg('msg-buscar',
+      nIda + ' día(s) disponibles de ida' + (calTipo === 'rv' ? ' · ' + nVuelta + ' de vuelta' : ''),
+      'ok');
+
+    document.getElementById('cal-titulo-ida').textContent    = '→ IDA · ' + origen + ' → ' + destino;
+    document.getElementById('cal-titulo-vuelta').textContent = '← VUELTA · ' + destino + ' → ' + origen;
+    document.getElementById('cal-vuelta-sec').style.display  = calTipo === 'rv' ? '' : 'none';
+
+    renderCalMes('cal-ida',    calAllIda,    calAnioIda,    calMesIdaIdx,    calSelIda);
+    if (calTipo === 'rv') renderCalMes('cal-vuelta', calAllVuelta, calAnioVuelta, calMesVueltaIdx, calSelVuelta);
+
+    document.getElementById('cal-section').style.display = '';
+    actualizarPanel(origen, destino);
+  }
+
+  function onError(err) {
+    btn.disabled = false;
+    document.getElementById('sp-buscar').classList.remove('show');
+    document.getElementById('txt-buscar').textContent = 'Buscar';
+    mostrarMsg('msg-buscar', '❌ Error: ' + err.message, 'error');
+  }
+
+  google.script.run
+    .withSuccessHandler(function(json) { calAllIda = JSON.parse(json); onDone(); })
+    .withFailureHandler(onError)
+    .buscarCalendarioWeb(origen, destino);
+
+  if (calTipo === 'rv') {
+    google.script.run
+      .withSuccessHandler(function(json) { calAllVuelta = JSON.parse(json); onDone(); })
+      .withFailureHandler(onError)
+      .buscarCalendarioWeb(destino, origen);
+  }
+}
+
+// Navegación de mes independiente por calendario
+function navMes(leg, delta) {
+  if (leg === 'ida') {
+    calMesIdaIdx += delta;
+    if (calMesIdaIdx < 0)  { calMesIdaIdx = 11; calAnioIda--; }
+    if (calMesIdaIdx > 11) { calMesIdaIdx = 0;  calAnioIda++; }
+    renderCalMes('cal-ida', calAllIda, calAnioIda, calMesIdaIdx, calSelIda);
+  } else {
+    calMesVueltaIdx += delta;
+    if (calMesVueltaIdx < 0)  { calMesVueltaIdx = 11; calAnioVuelta--; }
+    if (calMesVueltaIdx > 11) { calMesVueltaIdx = 0;  calAnioVuelta++; }
+    renderCalMes('cal-vuelta', calAllVuelta, calAnioVuelta, calMesVueltaIdx, calSelVuelta);
+  }
+}
+
+// Solo 2 colores: barato = azul, resto = celeste claro
+function asignarClasesPrecio(diasMes) {
+  var precios = Object.keys(diasMes)
+    .map(function(f) { return diasMes[f].min; })
+    .filter(function(p) { return p !== null; })
+    .sort(function(a,b) { return a - b; });
+  if (precios.length === 0) return {};
+  var mediana = precios[Math.floor(precios.length / 2)];
+  var clases  = {};
+  Object.keys(diasMes).forEach(function(fecha) {
+    var p = diasMes[fecha].min;
+    clases[fecha] = (p !== null && p <= mediana) ? 'p-cheap' : 'p-normal';
+  });
+  return clases;
+}
+
+function renderCalMes(containerId, allDias, anio, mesIdx, selFecha) {
+  // Filtrar solo el mes visible
+  var prefix = anio + '-' + String(mesIdx + 1).padStart(2,'0');
+  var diasMes = {};
+  Object.keys(allDias).forEach(function(f) { if (f.startsWith(prefix)) diasMes[f] = allDias[f]; });
+
+  var clases    = asignarClasesPrecio(diasMes);
+  var primerDia = (new Date(anio, mesIdx, 1).getDay() + 6) % 7;
+  var ultimoDia = new Date(anio, mesIdx + 1, 0).getDate();
+  var leg       = containerId === 'cal-ida' ? 'ida' : 'vuelta';
+  var mesLabel  = NOMBRES_MES[mesIdx] + ' ' + anio;
+
+  // Nav de mes dentro del calendario
+  var html = '<div class="cal-mes-nav">' +
+    '<button class="btn-mes" onclick="navMes(\'' + leg + '\',-1)">‹</button>' +
+    '<span class="cal-mes-nombre">' + mesLabel + '</span>' +
+    '<button class="btn-mes" onclick="navMes(\'' + leg + '\',1)">›</button>' +
+    '</div><div class="cal-grid">';
+
+  DIAS_SEM.forEach(function(d) { html += '<div class="cal-header">' + d + '</div>'; });
+  for (var e = 0; e < primerDia; e++) html += '<div class="cal-day empty"></div>';
+
+  for (var d = 1; d <= ultimoDia; d++) {
+    var fecha   = prefix + '-' + String(d).padStart(2,'0');
+    var info    = diasMes[fecha];
+    var cls     = info ? (clases[fecha] || 'p-normal') : 'sin-vuelo';
+    var selCls  = fecha === selFecha ? ' selected' : '';
+    var onclick = info ? ' onclick="seleccionarDia(\'' + leg + '\',\'' + fecha + '\')"' : '';
+    var precioHtml = '';
+    if (info && info.min !== null) {
+      var k = info.min >= 1000 ? Math.round(info.min / 1000) + 'k' : String(info.min);
+      precioHtml = '<div class="cal-precio">$' + k + '</div>';
+    }
+    html += '<div class="cal-day ' + cls + selCls + '"' + onclick + '>' +
+            '<div class="cal-num">' + d + '</div>' + precioHtml + '</div>';
+  }
+  html += '</div>';
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function seleccionarDia(leg, fecha) {
+  if (leg === 'ida') {
+    calSelIda    = fecha;
+    calFlightIda = null;
+    renderCalMes('cal-ida', calAllIda, calAnioIda, calMesIdaIdx, calSelIda);
+  } else {
+    calSelVuelta    = fecha;
+    calFlightVuelta = null;
+    renderCalMes('cal-vuelta', calAllVuelta, calAnioVuelta, calMesVueltaIdx, calSelVuelta);
+  }
+  actualizarPanel();
+}
+
+function seleccionarVuelo(leg, idx) {
+  if (leg === 'ida'    && calSelIda    && calAllIda[calSelIda])
+    calFlightIda    = calAllIda[calSelIda].vuelos[idx]    || null;
+  if (leg === 'vuelta' && calSelVuelta && calAllVuelta[calSelVuelta])
+    calFlightVuelta = calAllVuelta[calSelVuelta].vuelos[idx] || null;
+  actualizarPanel();
+}
+
+function actualizarPanel() {
+  var placeholder = document.getElementById('panel-placeholder');
+  var panel       = document.getElementById('resultado-panel');
+  var infoIda     = calSelIda    ? calAllIda[calSelIda]       : null;
+  var infoVuelta  = (calSelVuelta && calTipo === 'rv') ? calAllVuelta[calSelVuelta] : null;
+
+  if (!infoIda && !infoVuelta) {
+    placeholder.style.display = ''; panel.style.display = 'none'; return;
+  }
+  placeholder.style.display = 'none'; panel.style.display = '';
+
+  var html = '';
+
+  if (infoIda) {
+    var pi = calSelIda.split('-');
+    html += '<div class="panel-seccion">' +
+            '<div class="panel-leg">→ Ida</div>' +
+            '<div class="panel-fecha">' + parseInt(pi[2]) + ' de ' + NOMBRES_MES[parseInt(pi[1])-1] + ' ' + pi[0] + '</div>' +
+            renderPanelVuelos('ida', infoIda.vuelos, calFlightIda) +
+            '</div>';
+  }
+  if (infoVuelta) {
+    var pv = calSelVuelta.split('-');
+    html += '<div class="panel-seccion">' +
+            '<div class="panel-leg">← Vuelta</div>' +
+            '<div class="panel-fecha">' + parseInt(pv[2]) + ' de ' + NOMBRES_MES[parseInt(pv[1])-1] + ' ' + pv[0] + '</div>' +
+            renderPanelVuelos('vuelta', infoVuelta.vuelos, calFlightVuelta) +
+            '</div>';
+  }
+
+  // Total en ARS
+  var vIda    = calFlightIda    || (infoIda    && infoIda.vuelos[0])    || null;
+  var vVuelta = calFlightVuelta || (infoVuelta && infoVuelta.vuelos[0]) || null;
+  var pIda    = vIda    ? vIda.total    : null;
+  var pVuelta = vVuelta ? vVuelta.total : null;
+
+  if (pIda !== null || pVuelta !== null) {
+    var total = (pIda || 0) + (pVuelta || 0);
+    var detalle = '';
+    if (pIda !== null && pVuelta !== null)
+      detalle = '$' + numARS(pIda) + ' + $' + numARS(pVuelta) + ' ARS';
+    html += '<div class="panel-total">' +
+            '<div class="panel-total-label">Total estimado</div>' +
+            '<div class="panel-total-precio">$' + numARS(total) + ' ARS</div>' +
+            (detalle ? '<div class="panel-total-detalle">' + detalle + '</div>' : '') +
+            '</div>';
+  }
+
+  document.getElementById('panel-body').innerHTML = html;
+}
+
+function renderPanelVuelos(leg, vuelos, selFlight) {
+  if (!vuelos || vuelos.length === 0) return '<div style="color:#aaa;font-size:12px">Sin vuelos</div>';
+  return vuelos.map(function(v, i) {
+    var isSel   = selFlight ? (selFlight === v) : i === 0;
+    var selCls  = isSel ? ' panel-vuelo-sel' : '';
+    var precio  = v.total != null ? '$' + numARS(v.total) + ' ARS' : '—';
+    var imp     = v.imp   != null ? ' (+$' + numARS(v.imp) + ' imp.)' : '';
+    return '<div class="panel-vuelo' + selCls + '" onclick="seleccionarVuelo(\'' + leg + '\',' + i + ')">' +
+           '<div style="display:flex;justify-content:space-between;align-items:center">' +
+             '<span class="panel-vuelo-num">' + v.vuelo + (i===0?'<span class="mejor-tag">MEJOR</span>':'') + '</span>' +
+             '<span class="panel-vuelo-precio">' + precio + '</span>' +
+           '</div>' +
+           '<div class="panel-vuelo-hora">Salida: <strong>' + v.hora + '</strong>' +
+             (v.asientos ? ' · ' + v.asientos + ' as.' : '') + imp + '</div>' +
+           '</div>';
+  }).join('');
+}
+
+// ── Estadísticas de cambio de horario ─────────────────────────
+var estVuelos        = [];   // lista completa de la base
+var estFechasCambiadas = {}; // set de "fecha|vuelo" con cambio
+
+function initEstadisticas() {
+  document.getElementById('est-vacio').style.display    = '';
+  document.getElementById('est-main').style.display     = 'none';
+  document.getElementById('est-cards').style.display    = 'none';
+  google.script.run
+    .withSuccessHandler(function(json) {
+      var data = JSON.parse(json);
+      if (data.vuelos && data.vuelos.length > 0) {
+        estVuelos = data.vuelos;
+        renderTablaVuelos();
+        actualizarCards(data.vuelos.length, data.estadisticas);
+        renderCambios(data.ultimosCambios);
+        renderEstadisticasDia(data.estadisticas);
+        renderEstadisticasVuelo(data.estadisticas);
+        if (data.baseTimestamp)
+          document.getElementById('est-base-ts').textContent = 'Base actualizada: ' + data.baseTimestamp;
+        document.getElementById('est-vacio').style.display  = 'none';
+        document.getElementById('est-main').style.display   = '';
+        document.getElementById('est-cards').style.display  = '';
+      }
+    })
+    .withFailureHandler(function() {})
+    .cargarDatosEstadisticas();
+}
+
+function cargarBase() {
+  var btn = document.getElementById('btn-cargar-base');
+  btn.disabled = true;
+  document.getElementById('sp-cargar').classList.add('show');
+  document.getElementById('txt-cargar').textContent = 'Obteniendo...';
+  ocultarMsg('msg-estadisticas');
+
+  google.script.run
+    .withSuccessHandler(function(json) {
+      var vuelos = JSON.parse(json);
+      if (!Array.isArray(vuelos) || vuelos.length === 0) {
+        document.getElementById('sp-cargar').classList.remove('show');
+        document.getElementById('txt-cargar').textContent = 'Actualizar base';
+        btn.disabled = false;
+        mostrarMsg('msg-estadisticas', '⚠️ La API no devolvió vuelos para RES → AEP.', 'error');
+        return;
+      }
+      // Guardar en la hoja
+      document.getElementById('txt-cargar').textContent = 'Guardando...';
+      google.script.run
+        .withSuccessHandler(function(resJson) {
+          var res = JSON.parse(resJson);
+          btn.disabled = false;
+          document.getElementById('sp-cargar').classList.remove('show');
+          document.getElementById('txt-cargar').textContent = 'Actualizar base';
+          if (!res.ok) { mostrarMsg('msg-estadisticas', '❌ Error al guardar: ' + res.msg, 'error'); return; }
+          estVuelos = vuelos;
+          estFechasCambiadas = {};
+          renderTablaVuelos();
+          actualizarCards(vuelos.length, null);
+          document.getElementById('est-vacio').style.display  = 'none';
+          document.getElementById('est-main').style.display   = '';
+          document.getElementById('est-cards').style.display  = '';
+          document.getElementById('est-base-ts').textContent  = 'Base actualizada: ' + res.timestamp;
+          mostrarMsg('msg-estadisticas', '✅ Base guardada: ' + res.total + ' vuelos RES→AEP.', 'ok');
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          document.getElementById('sp-cargar').classList.remove('show');
+          document.getElementById('txt-cargar').textContent = 'Actualizar base';
+          mostrarMsg('msg-estadisticas', '❌ Error: ' + err.message, 'error');
+        })
+        .guardarBaseVuelos(JSON.stringify(vuelos));
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      document.getElementById('sp-cargar').classList.remove('show');
+      document.getElementById('txt-cargar').textContent = 'Actualizar base';
+      mostrarMsg('msg-estadisticas', '❌ Error: ' + err.message, 'error');
+    })
+    .obtenerVuelosRutaCompleta();
+}
+
+function verificarEstadisticas() {
+  var btn = document.getElementById('btn-verificar-est');
+  btn.disabled = true;
+  document.getElementById('sp-verificar-est').classList.add('show');
+  document.getElementById('txt-verificar-est').textContent = 'Verificando...';
+  ocultarMsg('msg-estadisticas');
+
+  google.script.run
+    .withSuccessHandler(function(json) {
+      btn.disabled = false;
+      document.getElementById('sp-verificar-est').classList.remove('show');
+      document.getElementById('txt-verificar-est').textContent = 'Verificar cambios';
+      var data = JSON.parse(json);
+      if (data.error) { mostrarMsg('msg-estadisticas', '❌ ' + data.error, 'error'); return; }
+
+      var n = data.cambios ? data.cambios.length : 0;
+      if (n === 0) {
+        mostrarMsg('msg-estadisticas', '✅ Sin cambios de horario detectados.', 'ok');
+      } else {
+        mostrarMsg('msg-estadisticas', '⚠️ Se detectaron ' + n + ' cambio(s) de horario. Registrados en la hoja.', 'ok');
+        data.cambios.forEach(function(c) { estFechasCambiadas[c.fecha + '|' + c.vuelo] = true; });
+        renderTablaVuelos();
+      }
+      if (data.estadisticas) {
+        actualizarCards(estVuelos.length, data.estadisticas);
+        renderCambios(data.ultimosCambios);
+        renderEstadisticasDia(data.estadisticas);
+        renderEstadisticasVuelo(data.estadisticas);
+      }
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      document.getElementById('sp-verificar-est').classList.remove('show');
+      document.getElementById('txt-verificar-est').textContent = 'Verificar cambios';
+      mostrarMsg('msg-estadisticas', '❌ Error: ' + err.message, 'error');
+    })
+    .verificarCambiosEstadisticos();
+}
+
+function actualizarCards(totalVuelos, estadisticas) {
+  document.getElementById('est-total-vuelos').textContent  = totalVuelos || '–';
+  var totalCambios = estadisticas ? estadisticas.total : 0;
+  document.getElementById('est-total-cambios').textContent = totalCambios || '0';
+  if (estadisticas && estadisticas.porDia) {
+    var dias   = Object.keys(estadisticas.porDia).sort(function(a,b){ return estadisticas.porDia[b]-estadisticas.porDia[a]; });
+    document.getElementById('est-dia-top').textContent = dias.length > 0 ? dias[0] : '–';
+  }
+  if (estadisticas && estadisticas.porVuelo) {
+    var vvs = Object.keys(estadisticas.porVuelo).sort(function(a,b){ return estadisticas.porVuelo[b]-estadisticas.porVuelo[a]; });
+    document.getElementById('est-vuelo-top').textContent = vvs.length > 0 ? vvs[0] : '–';
+  }
+}
+
+var estVuelosFiltrados = [];
+
+function renderTablaVuelos() {
+  var filtro   = (document.getElementById('est-filtro-fecha').value || '').trim().toLowerCase();
+  var filtered = filtro
+    ? estVuelos.filter(function(v) { return v.fecha.toLowerCase().indexOf(filtro) !== -1; })
+    : estVuelos;
+  estVuelosFiltrados = filtered;
+  document.getElementById('est-count-vuelos').textContent = filtered.length + ' vuelos';
+  var DIAS_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var html = filtered.map(function(v) {
+    var key      = v.fecha + '|' + v.vuelo;
+    var cambiada = estFechasCambiadas[key] ? ' fila-cambiada' : '';
+    var p = v.fecha.split('-');
+    var diaSem = p.length === 3 ? DIAS_CORTO[new Date(+p[0],+p[1]-1,+p[2]).getDay()] : '';
+    var llegada = v.llegada || '<span style="color:#ccc">—</span>';
+    return '<tr class="' + cambiada + '">' +
+           '<td><strong>' + v.fecha + '</strong> <span style="font-size:10px;color:#999">' + diaSem + '</span></td>' +
+           '<td><strong>' + v.vuelo + '</strong></td>' +
+           '<td>' + v.origen  + '</td>' +
+           '<td>' + v.destino + '</td>' +
+           '<td>' + v.salida  + '</td>' +
+           '<td>' + llegada   + '</td>' +
+           '</tr>';
+  }).join('');
+  document.getElementById('est-tabla-body').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:16px">Sin resultados</td></tr>';
+}
+
+function filtrarTablaVuelos() { renderTablaVuelos(); }
+
+function renderCambios(lista) {
+  if (!lista || lista.length === 0) {
+    document.getElementById('est-cambios-lista').innerHTML =
+      '<div style="color:#aaa;font-size:13px;text-align:center;padding:16px 0">Sin cambios registrados aún.</div>';
+    return;
+  }
+  var html = lista.map(function(c) {
+    var cls   = c.tipo === 'Retraso' ? 'retraso' : (c.tipo === 'Adelanto' ? 'adelanto' : '');
+    var badge = c.tipo === 'Retraso' ? 'badge-retraso' : (c.tipo === 'Adelanto' ? 'badge-adelanto' : 'badge-otro');
+    var diff  = parseInt(c.diffMin) || 0;
+    var diffStr = diff !== 0 ? (diff > 0 ? '+' : '') + diff + ' min' : '';
+    var salidaStr = c.salidaAnt && c.salidaNueva ? c.salidaAnt + ' → ' + c.salidaNueva : '';
+    return '<div class="cambio-row ' + cls + '">' +
+           '<div class="cambio-top">' +
+             '<span class="cambio-vuelo">' + c.vuelo + ' &nbsp;' + c.fecha + '</span>' +
+             '<span class="cambio-badge ' + badge + '">' + c.tipo +
+               (diffStr ? ' ' + diffStr : '') + '</span>' +
+           '</div>' +
+           '<div class="cambio-detalle">' +
+             (salidaStr ? 'Salida: <span class="cambio-diff">' + salidaStr + '</span>' : '') +
+             (c.llegadaAnt && c.llegadaNueva ? ' &nbsp; Llegada: ' + c.llegadaAnt + ' → ' + c.llegadaNueva : '') +
+           '</div>' +
+           '<div class="cambio-fecha-reg">' + c.fechaReg + '</div>' +
+           '</div>';
+  }).join('');
+  document.getElementById('est-cambios-lista').innerHTML = html;
+}
+
+function renderEstadisticasDia(estadisticas) {
+  var el = document.getElementById('est-dias-stats');
+  if (!estadisticas || !estadisticas.porDia || Object.keys(estadisticas.porDia).length === 0) {
+    el.innerHTML = '<div style="color:#aaa;font-size:12px;text-align:center;padding:10px 0">Sin datos aún</div>';
+    return;
+  }
+  var ORDEN_DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  var maxVal = Math.max.apply(null, Object.keys(estadisticas.porDia).map(function(d){ return estadisticas.porDia[d]; }));
+  var html = ORDEN_DIAS.map(function(dia) {
+    var cnt = estadisticas.porDia[dia] || 0;
+    var pct = maxVal > 0 ? Math.round(cnt / maxVal * 100) : 0;
+    var isTop = cnt === maxVal && cnt > 0;
+    return '<div class="dia-bar-row">' +
+           '<div class="dia-nombre">' + dia + '</div>' +
+           '<div class="dia-bar-bg"><div class="dia-bar-fill' + (isTop ? ' top' : '') + '" style="width:' + pct + '%"></div></div>' +
+           '<div class="dia-count">' + cnt + '</div>' +
+           '</div>';
+  }).join('');
+  el.innerHTML = html;
+}
+
+function renderEstadisticasVuelo(estadisticas) {
+  var el = document.getElementById('est-vuelos-stats');
+  if (!estadisticas || !estadisticas.porVuelo || Object.keys(estadisticas.porVuelo).length === 0) {
+    el.innerHTML = '<div style="color:#aaa;font-size:12px;text-align:center;padding:10px 0">Sin datos aún</div>';
+    return;
+  }
+  var sorted = Object.keys(estadisticas.porVuelo).sort(function(a,b){
+    return estadisticas.porVuelo[b] - estadisticas.porVuelo[a];
+  }).slice(0,8);
+  var maxVal = estadisticas.porVuelo[sorted[0]] || 1;
+  var html = sorted.map(function(v) {
+    var cnt = estadisticas.porVuelo[v];
+    var pct = Math.round(cnt / maxVal * 100);
+    return '<div class="vuelo-stat-row">' +
+           '<div class="vuelo-stat-num">' + v + '</div>' +
+           '<div class="vuelo-stat-bar-bg"><div class="vuelo-stat-bar-fill" style="width:' + pct + '%"></div></div>' +
+           '<div class="vuelo-stat-count">' + cnt + '</div>' +
+           '</div>';
+  }).join('');
+  el.innerHTML = html;
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function mostrarMsg(id, texto, tipo) {
+  var el = document.getElementById(id);
+  el.textContent = texto;
+  el.className = 'msg ' + tipo + ' show';
+}
+function ocultarMsg(id) { document.getElementById(id).className = 'msg'; }
+function numARS(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
+// ── Smiles ────────────────────────────────────────────────────
+var smTipo      = 'ida';
+var smOrigen    = 'AEP';
+var smDestino   = 'MIA';
+var smAnioIda   = 0;
+var smMesIdx    = 0;
+var smAnioV     = 0;
+var smMesIdxV   = 0;
+var smSelIda    = null;
+var smSelVuelta = null;
+var smCache     = {};
+var smCacheV    = {};
+var smVueloIdaIdx = 0;
+var smVueloVIdx   = 0;
+
+var SM_AIRPORTS = [
+  ['AEP','Buenos Aires (Aeroparque)'],
+  ['EZE','Buenos Aires (Ezeiza)'],
+  ['COR','Córdoba'],
+  ['MDZ','Mendoza'],
+  ['BRC','Bariloche'],
+  ['NQN','Neuquén'],
+  ['USH','Ushuaia'],
+  ['TUC','Tucumán'],
+  ['RES','Resistencia'],
+  ['SLA','Salta'],
+  ['IGR','Puerto Iguazú'],
+  ['FTE','El Calafate'],
+  ['CRD','Comodoro Rivadavia'],
+  ['VDM','Viedma'],
+  ['ASU','Asunción'],
+  ['SCL','Santiago de Chile'],
+  ['MVD','Montevideo'],
+  ['GIG','Rio de Janeiro (Galeão)'],
+  ['GRU','São Paulo (Guarulhos)'],
+  ['LIM','Lima'],
+  ['BOG','Bogotá'],
+  ['MIA','Miami'],
+  ['JFK','Nueva York'],
+  ['MAD','Madrid'],
+  ['FCO','Roma'],
+  ['LIS','Lisboa']
+];
+
+var smInited = false;
+
+function initSmiles() {
+  if (!smInited) {
+    smPoblarDropdowns();
+    var hoy = new Date();
+    smAnioIda = smAnioV = hoy.getFullYear();
+    smMesIdx  = smMesIdxV = hoy.getMonth();
+    smInited  = true;
+  }
+}
+
+function smPoblarDropdowns() {
+  SM_AIRPORTS.forEach(function(pair) {
+    var code = pair[0], nombre = pair[1];
+    ['sm-origen','sm-destino'].forEach(function(id) {
+      var opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = code + ' — ' + nombre;
+      if (id === 'sm-origen' && code === 'AEP') opt.selected = true;
+      if (id === 'sm-destino' && code === 'MIA') opt.selected = true;
+      document.getElementById(id).appendChild(opt);
+    });
+  });
+}
+
+function smSetTipo(tipo) {
+  smTipo = tipo;
+  document.getElementById('sm-tipo-btn-ida').classList.toggle('active', tipo === 'ida');
+  document.getElementById('sm-tipo-btn-rv').classList.toggle('active',  tipo === 'rv');
+  var sec = document.getElementById('sm-cal-vuelta-sec');
+  if (sec) sec.style.display = tipo === 'rv' ? '' : 'none';
+}
+
+function smSwapRuta() {
+  var selO = document.getElementById('sm-origen');
+  var selD = document.getElementById('sm-destino');
+  var tmp  = selO.value;
+  selO.value = selD.value;
+  selD.value = tmp;
+}
+
+function smBuscarRuta() {
+  smOrigen  = document.getElementById('sm-origen').value;
+  smDestino = document.getElementById('sm-destino').value;
+  if (smOrigen === smDestino) {
+    mostrarMsg('msg-smiles', 'Origen y destino no pueden ser iguales.', 'error');
+    return;
+  }
+
+  smCache  = {};
+  smCacheV = {};
+  smSelIda    = null;
+  smSelVuelta = null;
+  smVueloIdaIdx = 0;
+  smVueloVIdx   = 0;
+
+  var nombreO = smNombreAeropuerto(smOrigen);
+  var nombreD = smNombreAeropuerto(smDestino);
+
+  document.getElementById('sm-cal-titulo-ida').textContent    = '→ IDA · ' + smOrigen + ' — ' + nombreO + ' → ' + smDestino + ' — ' + nombreD;
+  document.getElementById('sm-cal-titulo-vuelta').textContent = '← VUELTA · ' + smDestino + ' → ' + smOrigen;
+  document.getElementById('sm-cal-vuelta-sec').style.display  = smTipo === 'rv' ? '' : 'none';
+  document.getElementById('sm-cal-section').style.display     = '';
+
+  smActualizarPanelVacio();
+  smFetchMes('ida');
+  if (smTipo === 'rv') smFetchMes('vuelta');
+}
+
+function smNombreAeropuerto(code) {
+  for (var i = 0; i < SM_AIRPORTS.length; i++) {
+    if (SM_AIRPORTS[i][0] === code) return SM_AIRPORTS[i][1];
+  }
+  return code;
+}
+
+function smCacheKey(orig, dest, anio, mesN) {
+  return orig + '-' + dest + '-' + anio + '-' + (mesN < 10 ? '0' + mesN : String(mesN));
+}
+
+var SM_PROXY = 'http://localhost:3131';
+
+function parsearSmilesClient(data) {
+  if (!data || !data.requestedFlightSegmentList) return [];
+  var seg = data.requestedFlightSegmentList[0];
+  if (!seg || !seg.flightList) return [];
+  return seg.flightList.map(function(f) {
+    var fares = {};
+    (f.fareList || []).forEach(function(fare) {
+      if (fare.type && fare.miles > 0)
+        fares[fare.type] = { miles: fare.miles || 0, money: fare.money || 0 };
+    });
+    var numVuelo = '';
+    if (f.legList && f.legList.length > 0) {
+      var mainLeg = null;
+      for (var li = 0; li < f.legList.length; li++) {
+        if (f.legList[li].isMainLeg === true || f.legList[li].isMainLeg === 'true') { mainLeg = f.legList[li]; break; }
+      }
+      if (!mainLeg) mainLeg = f.legList[0];
+      numVuelo = (mainLeg.marketingAirline ? mainLeg.marketingAirline.code : '') + (mainLeg.flightNumber || '');
+    }
+    var escalaInfo = '';
+    if (f.stops > 0 && f.airportMainStop) {
+      var ts = f.timeStop ? (f.timeStop.hours + 'h' + (f.timeStop.minutes > 0 ? f.timeStop.minutes + 'min' : '')) : '';
+      escalaInfo = f.airportMainStop.code + (ts ? ' (' + ts + ')' : '');
+    }
+    return {
+      vuelo:     numVuelo,
+      salida:    f.departure ? f.departure.date.substring(11,16) : '',
+      llegada:   f.arrival   ? f.arrival.date.substring(11,16)   : '',
+      duracion:  f.duration  ? (f.duration.hours + 'h' + (f.duration.minutes > 0 ? f.duration.minutes + 'min' : '')) : '',
+      paradas:   f.stops || 0,
+      escala:    escalaInfo,
+      asientos:  f.availableSeats || 0,
+      impARS:    f.airlineTax || 0,
+      impMillas: f.airlineTaxMiles || 0,
+      aerolinea: f.airline ? f.airline.name : '',
+      fares:     fares
+    };
+  }).filter(function(v) { return v.fares.SMILES || v.fares.SMILES_CLUB || v.fares.SMILES_MONEY; });
+}
+
+function smFetchMes(leg) {
+  var orig   = leg === 'ida' ? smOrigen  : smDestino;
+  var dest   = leg === 'ida' ? smDestino : smOrigen;
+  var anio   = leg === 'ida' ? smAnioIda : smAnioV;
+  var mesIdx = leg === 'ida' ? smMesIdx  : smMesIdxV;
+  var mesN   = mesIdx + 1;
+  var key    = smCacheKey(orig, dest, anio, mesN);
+  var cache  = leg === 'ida' ? smCache : smCacheV;
+
+  if (cache[key]) { smRenderCal(leg, cache[key]); return; }
+
+  smRenderCalCargando(leg);
+
+  var btn = document.getElementById('btn-sm-buscar');
+  btn.disabled = true;
+  document.getElementById('sp-sm-buscar').classList.add('show');
+  document.getElementById('txt-sm-buscar').textContent = 'Buscando...';
+  ocultarMsg('msg-smiles');
+
+  var hoyStr  = new Date().toISOString().substring(0, 10);
+  var diasMes = new Date(anio, mesN, 0).getDate();
+  var fechas  = [];
+  for (var d = 1; d <= diasMes; d++) {
+    var dd    = d   < 10 ? '0' + d   : String(d);
+    var mm    = mesN < 10 ? '0' + mesN : String(mesN);
+    var fecha = String(anio) + '-' + mm + '-' + dd;
+    if (fecha >= hoyStr) fechas.push(fecha);
+  }
+
+  if (fechas.length === 0) {
+    btn.disabled = false;
+    document.getElementById('sp-sm-buscar').classList.remove('show');
+    document.getElementById('txt-sm-buscar').textContent = 'Buscar millas';
+    cache[key] = {};
+    smRenderCal(leg, {});
+    mostrarMsg('msg-smiles', 'ℹ Mes ya pasado.', 'info');
+    return;
+  }
+
+  var capturedKey   = key;
+  var capturedCache = cache;
+  var capturedLeg   = leg;
+
+  var promises = fechas.map(function(f) {
+    return fetch(SM_PROXY + '?orig=' + orig + '&dest=' + dest + '&fecha=' + f)
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) { return { fecha: f, data: data }; })
+      .catch(function() { return { fecha: f, data: null }; });
+  });
+
+  Promise.all(promises).then(function(results) {
+    btn.disabled = false;
+    document.getElementById('sp-sm-buscar').classList.remove('show');
+    document.getElementById('txt-sm-buscar').textContent = 'Buscar millas';
+
+    var calData = {};
+    results.forEach(function(r) {
+      if (!r.data) return;
+      var vuelos = parsearSmilesClient(r.data);
+      if (vuelos.length === 0) return;
+      var minMillas = null;
+      vuelos.forEach(function(v) {
+        var m = v.fares.SMILES ? v.fares.SMILES.miles : null;
+        if (m && m > 0 && (minMillas === null || m < minMillas)) minMillas = m;
+      });
+      calData[r.fecha] = { minMillas: minMillas, vuelos: vuelos };
+    });
+
+    capturedCache[capturedKey] = calData;
+    smRenderCal(capturedLeg, calData);
+    var n = Object.keys(calData).length;
+    mostrarMsg('msg-smiles',
+      n > 0 ? '✅ ' + n + ' días disponibles en ' + NOMBRES_MES[capturedLeg === 'ida' ? smMesIdx : smMesIdxV] :
+              'ℹ Sin vuelos para esa ruta en ese mes.',
+      n > 0 ? 'ok' : 'info');
+  }).catch(function() {
+    btn.disabled = false;
+    document.getElementById('sp-sm-buscar').classList.remove('show');
+    document.getElementById('txt-sm-buscar').textContent = 'Buscar millas';
+    mostrarMsg('msg-smiles', '❌ Proxy no iniciado — abrí una terminal y ejecutá: node smiles-proxy.js', 'error');
+    smRenderCalVacio(capturedLeg);
+  });
+}
+
+function smNavMes(leg, delta) {
+  if (leg === 'ida') {
+    smMesIdx += delta;
+    if (smMesIdx < 0)  { smMesIdx = 11; smAnioIda--; }
+    if (smMesIdx > 11) { smMesIdx = 0;  smAnioIda++; }
+    smSelIda = null;
+  } else {
+    smMesIdxV += delta;
+    if (smMesIdxV < 0)  { smMesIdxV = 11; smAnioV--; }
+    if (smMesIdxV > 11) { smMesIdxV = 0;  smAnioV++; }
+    smSelVuelta = null;
+  }
+  smActualizarPanelVacio();
+  smFetchMes(leg);
+}
+
+function smRenderCal(leg, data) {
+  var containerId = 'sm-cal-' + (leg === 'ida' ? 'ida' : 'vuelta');
+  var anio    = leg === 'ida' ? smAnioIda : smAnioV;
+  var mesIdx  = leg === 'ida' ? smMesIdx  : smMesIdxV;
+  var selFecha = leg === 'ida' ? smSelIda : smSelVuelta;
+
+  var mesN   = mesIdx + 1;
+  var prefix = anio + '-' + (mesN < 10 ? '0' + mesN : String(mesN));
+
+  var diasMes = {};
+  Object.keys(data).forEach(function(f) {
+    if (f.substring(0, prefix.length) === prefix) diasMes[f] = data[f];
+  });
+
+  // 2 colores: barato <= mediana → sm-cheap, resto → sm-normal
+  var miles = [];
+  Object.keys(diasMes).forEach(function(f) {
+    if (diasMes[f].minMillas !== null) miles.push(diasMes[f].minMillas);
+  });
+  miles.sort(function(a,b){ return a - b; });
+  var mediana = miles.length > 0 ? miles[Math.floor(miles.length / 2)] : 0;
+
+  var clases = {};
+  Object.keys(diasMes).forEach(function(f) {
+    var m = diasMes[f].minMillas;
+    clases[f] = (m !== null && m <= mediana) ? 'sm-cheap' : 'sm-normal';
+  });
+
+  var primerDia = (new Date(anio, mesIdx, 1).getDay() + 6) % 7;
+  var ultimoDia = new Date(anio, mesIdx + 1, 0).getDate();
+
+  var html = '<div class="cal-mes-nav">' +
+    '<button class="btn-mes" onclick="smNavMes(\'' + leg + '\',-1)">‹</button>' +
+    '<span class="cal-mes-nombre">' + NOMBRES_MES[mesIdx] + ' ' + anio + '</span>' +
+    '<button class="btn-mes" onclick="smNavMes(\'' + leg + '\',1)">›</button>' +
+    '</div><div class="cal-grid">';
+
+  DIAS_SEM.forEach(function(d) { html += '<div class="cal-header">' + d + '</div>'; });
+  for (var e = 0; e < primerDia; e++) html += '<div class="cal-day empty"></div>';
+
+  for (var d = 1; d <= ultimoDia; d++) {
+    var dStr  = d < 10 ? '0' + d : String(d);
+    var fecha = prefix + '-' + dStr;
+    var info  = diasMes[fecha];
+    var cls   = info ? ('cal-day ' + (clases[fecha] || 'sm-normal')) : 'cal-day sin-vuelo';
+    var selCls  = fecha === selFecha ? ' selected' : '';
+    var onclick = info ? ' onclick="smSelDia(\'' + leg + '\',\'' + fecha + '\')"' : '';
+    var milHtml = '';
+    if (info && info.minMillas !== null) {
+      var km = Math.round(info.minMillas / 1000);
+      milHtml = '<div class="cal-precio">' + km + 'k</div>';
+    }
+    html += '<div class="' + cls + selCls + '"' + onclick + '><div class="cal-num">' + d + '</div>' + milHtml + '</div>';
+  }
+  html += '</div>';
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function smRenderCalCargando(leg) {
+  var id     = 'sm-cal-' + (leg === 'ida' ? 'ida' : 'vuelta');
+  var anio   = leg === 'ida' ? smAnioIda : smAnioV;
+  var mesIdx = leg === 'ida' ? smMesIdx  : smMesIdxV;
+  document.getElementById(id).innerHTML =
+    '<div class="cal-mes-nav">' +
+    '<button class="btn-mes" onclick="smNavMes(\'' + leg + '\',-1)">‹</button>' +
+    '<span class="cal-mes-nombre">' + NOMBRES_MES[mesIdx] + ' ' + anio + '</span>' +
+    '<button class="btn-mes" onclick="smNavMes(\'' + leg + '\',1)">›</button>' +
+    '</div><div style="text-align:center;padding:28px 0;color:#aaa;font-size:13px">⏳ Consultando vuelos...</div>';
+}
+
+function smRenderCalVacio(leg) {
+  var id     = 'sm-cal-' + (leg === 'ida' ? 'ida' : 'vuelta');
+  var anio   = leg === 'ida' ? smAnioIda : smAnioV;
+  var mesIdx = leg === 'ida' ? smMesIdx  : smMesIdxV;
+  var mesN   = mesIdx + 1;
+  var primerDia = (new Date(anio, mesIdx, 1).getDay() + 6) % 7;
+  var ultimoDia = new Date(anio, mesIdx + 1, 0).getDate();
+  var html = '<div class="cal-mes-nav">' +
+    '<button class="btn-mes" onclick="smNavMes(\'' + leg + '\',-1)">‹</button>' +
+    '<span class="cal-mes-nombre">' + NOMBRES_MES[mesIdx] + ' ' + anio + '</span>' +
+    '<button class="btn-mes" onclick="smNavMes(\'' + leg + '\',1)">›</button>' +
+    '</div><div class="cal-grid">';
+  DIAS_SEM.forEach(function(d) { html += '<div class="cal-header">' + d + '</div>'; });
+  for (var e = 0; e < primerDia; e++) html += '<div class="cal-day empty"></div>';
+  for (var d = 1; d <= ultimoDia; d++) html += '<div class="cal-day sin-vuelo"><div class="cal-num">' + d + '</div></div>';
+  html += '</div>';
+  document.getElementById(id).innerHTML = html;
+}
+
+function smSelDia(leg, fecha) {
+  if (leg === 'ida') {
+    smSelIda = fecha;
+    smVueloIdaIdx = 0;
+    var mesN = smMesIdx + 1;
+    smRenderCal('ida', smCache[smCacheKey(smOrigen, smDestino, smAnioIda, mesN)] || {});
+  } else {
+    smSelVuelta = fecha;
+    smVueloVIdx = 0;
+    var mesNV = smMesIdxV + 1;
+    smRenderCal('vuelta', smCacheV[smCacheKey(smDestino, smOrigen, smAnioV, mesNV)] || {});
+  }
+  smActualizarPanel();
+}
+
+function smSelVuelo(leg, idx) {
+  if (leg === 'ida') smVueloIdaIdx = idx;
+  else               smVueloVIdx   = idx;
+  smActualizarPanel();
+}
+
+function smGetVuelos(leg) {
+  var orig    = leg === 'ida' ? smOrigen  : smDestino;
+  var dest    = leg === 'ida' ? smDestino : smOrigen;
+  var anio    = leg === 'ida' ? smAnioIda : smAnioV;
+  var mesIdx  = leg === 'ida' ? smMesIdx  : smMesIdxV;
+  var sel     = leg === 'ida' ? smSelIda  : smSelVuelta;
+  var cache   = leg === 'ida' ? smCache   : smCacheV;
+  var key     = smCacheKey(orig, dest, anio, mesIdx + 1);
+  if (!sel || !cache[key] || !cache[key][sel]) return null;
+  return cache[key][sel].vuelos;
+}
+
+function smActualizarPanel() {
+  var vuelosIda    = smGetVuelos('ida');
+  var vuelosVuelta = smTipo === 'rv' ? smGetVuelos('vuelta') : null;
+
+  if (!vuelosIda && !vuelosVuelta) { smActualizarPanelVacio(); return; }
+
+  document.getElementById('sm-panel-placeholder').style.display = 'none';
+  document.getElementById('sm-resultado-panel').style.display   = '';
+
+  var panelIda    = document.getElementById('sm-panel-ida');
+  var panelVuelta = document.getElementById('sm-panel-vuelta');
+
+  panelIda.innerHTML    = vuelosIda    ? smRenderPanelLeg('ida',    smSelIda,    vuelosIda,    smVueloIdaIdx) : '';
+  panelVuelta.innerHTML = vuelosVuelta ? smRenderPanelLeg('vuelta', smSelVuelta, vuelosVuelta, smVueloVIdx)   : '';
+}
+
+function smActualizarPanelVacio() {
+  document.getElementById('sm-panel-placeholder').style.display = '';
+  document.getElementById('sm-resultado-panel').style.display   = 'none';
+}
+
+function smRenderPanelLeg(leg, fecha, vuelos, selIdx) {
+  if (!vuelos || vuelos.length === 0)
+    return '<div style="color:#aaa;font-size:13px;text-align:center;padding:12px">Sin vuelos disponibles</div>';
+
+  var pi = fecha ? fecha.split('-') : ['','',''];
+  var fechaLabel = parseInt(pi[2]) + ' de ' + NOMBRES_MES[parseInt(pi[1])-1] + ' ' + pi[0];
+  var legLabel   = leg === 'ida' ? '→ IDA' : '← VUELTA';
+
+  var html = (leg === 'vuelta' ? '<hr class="sm-sep">' : '') +
+    '<div class="sm-panel-leg-titulo">' + legLabel + '</div>' +
+    '<div class="sm-panel-fecha">' + fechaLabel + '</div>';
+
+  // Cards de vuelos
+  vuelos.forEach(function(v, i) {
+    var isSel    = i === selIdx;
+    var stopStr  = v.paradas === 0 ? 'Directo' : (v.paradas === 1 ? '1 escala' : v.paradas + ' escalas');
+    var stopCls  = v.paradas === 0 ? 'sm-stop-directo' : 'sm-stop-escala';
+    var selCls   = isSel ? ' sm-sel' : '';
+    var metaParts = [];
+    if (v.duracion)  metaParts.push(v.duracion);
+    if (v.escala)    metaParts.push('via ' + v.escala);
+    if (v.aerolinea) metaParts.push(v.aerolinea);
+    var metaStr  = metaParts.join(' · ');
+
+    html += '<div class="sm-vuelo-card' + selCls + '" onclick="smSelVuelo(\'' + leg + '\',' + i + ')">' +
+      '<div class="sm-vuelo-top">' +
+        '<span class="sm-vuelo-num">' + (v.vuelo || '—') + (i === 0 ? '<span class="mejor-tag" style="background:#6B21A8">MEJOR</span>' : '') + '</span>' +
+        '<span class="sm-vuelo-stops ' + stopCls + '">' + stopStr + '</span>' +
+      '</div>' +
+      '<div class="sm-vuelo-hora">' +
+        '<strong>' + (v.salida || '—') + '</strong> → <strong>' + (v.llegada || '—') + '</strong>' +
+        (v.asientos > 0 ? ' &nbsp;<span class="sm-asientos">' + v.asientos + ' as.</span>' : '') +
+      '</div>' +
+      (metaStr ? '<div class="sm-vuelo-meta">' + metaStr + '</div>' : '') +
+    '</div>';
+  });
+
+  // Fare cards para el vuelo seleccionado
+  var vSel = vuelos[selIdx] || vuelos[0];
+  if (vSel) html += smRenderFareCards(vSel);
+
+  return html;
+}
+
+function smRenderFareCards(v) {
+  var html = '<div class="sm-fare-cards">';
+  var impARS = v.impARS || 0;
+
+  // SMILES — solo millas
+  if (v.fares.SMILES && v.fares.SMILES.miles > 0) {
+    var fs = v.fares.SMILES;
+    html += '<div class="sm-fare-card sm-fare-smiles">' +
+      '<div class="sm-fare-tipo">🎖 Solo Millas</div>' +
+      '<div class="sm-fare-millas">' + numMillas(fs.miles) + '</div>' +
+      (impARS > 0 ? '<div class="sm-fare-sub">+ $' + numARS(Math.round(impARS)) + ' ARS en impuestos</div>' : '<div class="sm-fare-sub">Sin impuestos adicionales</div>') +
+    '</div>';
+  }
+
+  // SMILES CLUB — millas con descuento
+  if (v.fares.SMILES_CLUB && v.fares.SMILES_CLUB.miles > 0) {
+    var fc    = v.fares.SMILES_CLUB;
+    var ahorro = v.fares.SMILES ? (v.fares.SMILES.miles - fc.miles) : 0;
+    html += '<div class="sm-fare-card sm-fare-club">' +
+      '<div class="sm-fare-tipo">⭐ Smiles Club</div>' +
+      '<div class="sm-fare-millas">' + numMillas(fc.miles) + '</div>' +
+      (ahorro > 0 ? '<div class="sm-fare-ahorro">Ahorrás ' + numMillas(ahorro) + ' vs. tarifa normal</div>' : '') +
+      (impARS > 0 ? '<div class="sm-fare-sub">+ $' + numARS(Math.round(impARS)) + ' ARS en impuestos</div>' : '') +
+    '</div>';
+  }
+
+  // SMILES + MONEY — mix millas + plata
+  if (v.fares.SMILES_MONEY && v.fares.SMILES_MONEY.miles > 0) {
+    var fm = v.fares.SMILES_MONEY;
+    var totalARS = Math.round((fm.money || 0) + impARS);
+    html += '<div class="sm-fare-card sm-fare-money">' +
+      '<div class="sm-fare-tipo">💰 Millas + Plata</div>' +
+      '<div class="sm-fare-millas">' + numMillas(fm.miles) + '</div>' +
+      '<div class="sm-fare-sub">+ $' + numARS(totalARS) + ' ARS en efectivo</div>' +
+    '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function numMillas(n) {
+  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' millas';
+}
+
+function smDiagnostico() {
+  var el = document.getElementById('sm-diag-result');
+  el.textContent = 'Testeando proxy local...';
+  el.style.color = '#555';
+  var d30 = new Date(); d30.setDate(d30.getDate() + 30);
+  var fecha = d30.toISOString().substring(0, 10);
+  fetch(SM_PROXY + '?orig=AEP&dest=COR&fecha=' + fecha)
+    .then(function(r) { return r.json().then(function(data) { return { status: r.status, data: data }; }); })
+    .then(function(res) {
+      var vuelos = parsearSmilesClient(res.data);
+      if (vuelos.length > 0) {
+        el.textContent = '✅ Proxy OK · AEP→COR ' + fecha + ' · ' + vuelos.length + ' vuelos encontrados';
+        el.style.color = '#2E7D32';
+      } else {
+        el.textContent = '⚠️ Proxy OK · AEP→COR ' + fecha + ' · 0 vuelos (HTTP ' + res.status + ')';
+        el.style.color = '#E65100';
+      }
+    })
+    .catch(function() {
+      el.innerHTML = '❌ Proxy no iniciado · En terminal (carpeta Jetsmart): <code>node smiles-proxy.js</code>';
+      el.style.color = '#C62828';
+    });
+}
+</script>
+</body>
+</html>
