@@ -497,10 +497,11 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 
 <header>
   <div class="logo">🛫</div>
-  <div>
+  <div style="flex:1">
     <h1>Mis Vuelos</h1>
     <p id="header-sub">Cargando...</p>
   </div>
+  <button onclick="cerrarSesion()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Cerrar sesión</button>
 </header>
 
 <nav>
@@ -936,6 +937,9 @@ function apiFetch(url, options) {
       return data;
     });
   });
+}
+function cerrarSesion() {
+  fetch('/api/logout', { method: 'POST' }).then(function() { location.reload(); });
 }
 var CIUDADES = [
   'Buenos Aires (AEP)','Buenos Aires (EZE)','Resistencia','Cordoba',

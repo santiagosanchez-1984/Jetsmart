@@ -1,5 +1,5 @@
 const cors = require('../lib/cors');
-const checkAuth = require('../lib/basicAuth');
+const { isAuthenticated } = require('../lib/auth');
 
 const SMILES_SEARCH_URL = 'https://api-air-flightsearch-blue.smiles.com.ar/v1/airlines/search';
 
@@ -32,7 +32,7 @@ function buildUrl(orig, dest, fecha) {
 module.exports = async function(req, res) {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (!checkAuth(req, res)) return;
+  if (!isAuthenticated(req)) return res.status(401).json({ error: 'No autenticado' });
 
   const { orig, dest, fecha } = req.query;
   if (!orig || !dest || !fecha) {
