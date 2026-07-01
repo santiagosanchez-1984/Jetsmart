@@ -1,5 +1,3 @@
-const cors = require('../../lib/cors');
-const { isAuthenticated } = require('../../lib/auth');
 const { getSheetsClient, SHEET_ID } = require('../../lib/sheets');
 const { calcularEstadisticasHist, cargarUltimosCambios } = require('../../lib/jetsmart');
 
@@ -7,10 +5,6 @@ const SHEET_HIST    = 'VuelosHistorial';
 const SHEET_CAMBIOS = 'CambiosHorarios';
 
 module.exports = async function(req, res) {
-  cors(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (!isAuthenticated(req)) return res.status(401).json({ error: 'No autenticado' });
-
   try {
     const sheets = getSheetsClient();
 

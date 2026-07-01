@@ -33,8 +33,23 @@ const server = http.createServer(async (req, res) => {
 
   // API routes
   if (url.startsWith('/api/')) {
-    const handler = url.slice(1).replace(/\//g, path.sep);
-    const file = path.join(__dirname, handler + '.js');
+    const relPath = url.slice(1).replace(/\//g, path.sep);
+    let file = path.join(__dirname, relPath + '.js');
+
+    if (!fs.existsSync(file)) {
+      // Ruta dinamica estilo Vercel: api/carpeta/[param].js
+      const dir = path.dirname(file);
+      const lastSegment = path.basename(relPath);
+      if (fs.existsSync(dir)) {
+        const dynFile = fs.readdirSync(dir).find(f => /^\[.+\]\.js$/.test(f));
+        if (dynFile) {
+          const paramName = dynFile.slice(1, dynFile.indexOf(']'));
+          req.query[paramName] = lastSegment;
+          file = path.join(dir, dynFile);
+        }
+      }
+    }
+
     if (!fs.existsSync(file)) { res.status(404).json({ error: 'Not found' }); return; }
 
     // Parse body para POST/PUT

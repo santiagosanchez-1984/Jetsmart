@@ -1,14 +1,9 @@
-const cors = require('../../lib/cors');
-const { isAuthenticated } = require('../../lib/auth');
 const { getSheetsClient, SHEET_ID, ensureSheetExists } = require('../../lib/sheets');
 const { ahoraStr } = require('../../lib/jetsmart');
 
 const SHEET_HIST = 'VuelosHistorial';
 
 module.exports = async function(req, res) {
-  cors(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (!isAuthenticated(req)) return res.status(401).json({ error: 'No autenticado' });
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
