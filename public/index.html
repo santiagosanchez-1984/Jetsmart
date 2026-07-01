@@ -358,6 +358,7 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 .cal-day.sin-vuelo .cal-num { color: #c8cdd8; }
 .cal-num    { font-size: 12px; font-weight: 700; line-height: 1; }
 .cal-precio { font-size: 10px; font-weight: 800; margin-top: 3px; line-height: 1; }
+.cal-airline-icon { font-size: 12px; line-height: 1; margin-top: 1px; }
 .cal-day.selected { outline: 3px solid #FFD700; outline-offset: 1px; position: relative; z-index: 3; }
 
 /* Solo 2 colores */
@@ -1003,6 +1004,14 @@ function aerolineaIcono(nombre) {
 function aerolineaBadge(nombre) {
   var a = aerolineaIcono(nombre);
   return '<span class="airline-badge">' + a.icon + ' ' + a.label + '</span>';
+}
+function smVueloMasBarato(vuelos) {
+  var mejor = null, mejorMillas = null;
+  (vuelos || []).forEach(function(v) {
+    var m = v.fares && v.fares.SMILES ? v.fares.SMILES.miles : null;
+    if (m && m > 0 && (mejorMillas === null || m < mejorMillas)) { mejorMillas = m; mejor = v; }
+  });
+  return mejor;
 }
 
 // ── Cargar reservas ────────────────────────────────────────────
@@ -2218,7 +2227,9 @@ function smRenderCal(leg, data) {
     var milHtml = '';
     if (info && info.minMillas !== null) {
       var km = Math.round(info.minMillas / 1000);
-      milHtml = '<div class="cal-precio">' + km + 'k</div>';
+      var mejor = smVueloMasBarato(info.vuelos);
+      var iconoHtml = mejor ? '<div class="cal-airline-icon" title="' + aerolineaIcono(mejor.aerolinea).label + '">' + aerolineaIcono(mejor.aerolinea).icon + '</div>' : '';
+      milHtml = iconoHtml + '<div class="cal-precio">' + km + 'k</div>';
     }
     html += '<div class="' + cls + selCls + '"' + onclick + '><div class="cal-num">' + d + '</div>' + milHtml + '</div>';
   }
