@@ -498,7 +498,6 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
   <button class="active" onclick="showTab('reservas')">✈ Reservas</button>
   <button onclick="showTab('indicadores')">📊 Indicadores</button>
   <button onclick="showTab('importar')">📥 Importar Gmail</button>
-  <button onclick="showTab('verificar')">🔔 Verificar Horarios</button>
   <button onclick="showTab('buscar')">🔍 Buscar Vuelos</button>
   <button onclick="showTab('estadisticas')">📈 Estadísticas</button>
   <button onclick="showTab('smiles')">🎖 Smiles</button>
@@ -508,6 +507,18 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 
   <!-- ═══ TAB: RESERVAS ═══ -->
   <div id="tab-reservas" class="tab-content active">
+
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:14px;padding:14px 20px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:24px">🔔</span>
+        <span style="font-size:13px;color:#555">Verificá si cambió el horario de tus reservas <strong>Pendiente</strong> contra JetSMART</span>
+      </div>
+      <button class="btn btn-orange" id="btn-verificar" onclick="verificar()">
+        <span id="sp-verificar" class="spinner"></span>
+        <span id="txt-verificar">Verificar horarios</span>
+      </button>
+    </div>
+    <div id="msg-verificar" class="msg"></div>
 
     <div class="stats">
       <div class="stat-card pendiente"><div class="stat-num" id="cnt-pendiente">–</div><div class="stat-label">Pendiente</div></div>
@@ -609,27 +620,6 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
         </button>
       </div>
       <div id="msg-importar" class="msg"></div>
-    </div>
-  </div>
-
-  <!-- ═══ TAB: VERIFICAR ═══ -->
-  <div id="tab-verificar" class="tab-content">
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:14px">
-          <span style="font-size:32px">🔔</span>
-          <div>
-            <h2 style="margin-bottom:3px">Verificar Horarios</h2>
-            <p>Compara los horarios de tus reservas <strong>Pendiente</strong> con los actuales de JetSMART.</p>
-          </div>
-        </div>
-        <button class="btn btn-orange" id="btn-verificar" onclick="verificar()">
-          <span id="sp-verificar" class="spinner"></span>
-          <span id="txt-verificar">Verificar ahora</span>
-        </button>
-      </div>
-      <div id="msg-verificar" class="msg"></div>
-      <div id="cambios-container"></div>
     </div>
   </div>
 
@@ -919,7 +909,7 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 
 <script>
 var reservas = [];
-var TABS     = ['reservas','indicadores','importar','verificar','buscar','estadisticas','smiles'];
+var TABS     = ['reservas','indicadores','importar','buscar','estadisticas','smiles'];
 
 // ── API ──
 function apiFetch(url, options) {
@@ -1042,6 +1032,24 @@ function actualizarStats() {
 
 // ── Tabla de reservas ──────────────────────────────────────────
 var filtroEstados = { Pendiente: true, Abierto: true, Tomado: true };
+var cambiosHorario = {}; // clave "codigo|IDA" o "codigo|VUELTA" -> {horaAntes, horaAhora, diff, estado}
+
+function renderLegCell(fecha, origen, destino, vuelo, salida, cambio) {
+  if (!fecha) return '<span style="color:#bbb">—</span>';
+  var horaHtml = '<span class="hora">' + (salida || '') + '</span>';
+  if (cambio) {
+    var badgeCls = cambio.estado === 'Abierto' ? 'estado-abierto' : 'estado-noabierto';
+    horaHtml =
+      '<span class="hora" style="text-decoration:line-through;color:#aaa;font-weight:400">' + cambio.horaAntes + '</span> ' +
+      '<span class="hora" style="color:#E65100">→ ' + cambio.horaAhora + '</span> ' +
+      '<span class="badge ' + badgeCls + '" style="font-size:10px;padding:2px 8px">' + cambio.estado + '</span>';
+  }
+  return '<div class="col-ruta">' +
+      '<div class="fecha">' + fecha + '</div>' +
+      '<div class="ruta">' + origen + ' → ' + destino + '</div>' +
+      '<div class="vuelo">' + (vuelo || '') + ' ' + horaHtml + '</div>' +
+    '</div>';
+}
 
 function toggleEstadoFiltro(btn) {
   var est = btn.getAttribute('data-est');
@@ -1082,21 +1090,8 @@ function renderTabla() {
     '</tr></thead><tbody>';
 
   filtradas.forEach(function(r) {
-    var ida = r.fechaIda
-      ? '<div class="col-ruta">' +
-          '<div class="fecha">' + r.fechaIda + '</div>' +
-          '<div class="ruta">' + r.origenIda + ' → ' + r.destinoIda + '</div>' +
-          '<div class="vuelo">' + (r.vueloIda||'') + ' <span class="hora">' + (r.salidaIda||'') + '</span></div>' +
-        '</div>'
-      : '<span style="color:#bbb">—</span>';
-
-    var vuelta = r.fechaVuelta
-      ? '<div class="col-ruta">' +
-          '<div class="fecha">' + r.fechaVuelta + '</div>' +
-          '<div class="ruta">' + r.origenVuelta + ' → ' + r.destinoVuelta + '</div>' +
-          '<div class="vuelo">' + (r.vueloVuelta||'') + ' <span class="hora">' + (r.salidaVuelta||'') + '</span></div>' +
-        '</div>'
-      : '<span style="color:#bbb">—</span>';
+    var ida    = renderLegCell(r.fechaIda,    r.origenIda,    r.destinoIda,    r.vueloIda,    r.salidaIda,    cambiosHorario[r.codigo + '|IDA']);
+    var vuelta = renderLegCell(r.fechaVuelta, r.origenVuelta, r.destinoVuelta, r.vueloVuelta, r.salidaVuelta, cambiosHorario[r.codigo + '|VUELTA']);
 
     var repVal = (r.reprog === 'Si' || r.reprog === 'Sí') ? 'Si' : 'No';
     var repBtn = '<button class="rep-btn rep-' + repVal.toLowerCase() + '" ' +
@@ -1310,52 +1305,42 @@ function importar() {
     });
 }
 
-// ── Verificar horarios ─────────────────────────────────────────
+// ── Verificar horarios (integrado en Reservas, solo mira Pendiente) ────
 function verificar() {
   var btn = document.getElementById('btn-verificar');
   btn.disabled = true;
   document.getElementById('sp-verificar').classList.add('show');
   document.getElementById('txt-verificar').textContent = 'Verificando...';
   ocultarMsg('msg-verificar');
-  document.getElementById('cambios-container').innerHTML = '';
 
   apiFetch('/api/verificar-horarios', { method: 'POST' })
     .then(function(cambios) {
       btn.disabled = false;
       document.getElementById('sp-verificar').classList.remove('show');
-      document.getElementById('txt-verificar').textContent = 'Verificar ahora';
+      document.getElementById('txt-verificar').textContent = 'Verificar horarios';
 
       if (cambios.length === 0) {
         mostrarMsg('msg-verificar', '✅ Sin cambios de horario. Todos los vuelos están en el horario original.', 'ok');
         return;
       }
 
-      mostrarMsg('msg-verificar', '⚠️ Se detectaron ' + cambios.length + ' cambio(s) de horario.', 'error');
+      mostrarMsg('msg-verificar', '⚠️ Se detectaron ' + cambios.length + ' cambio(s) de horario. Marcados en la tabla.', 'error');
 
-      document.getElementById('cambios-container').innerHTML = cambios.map(function(c) {
-        var diff    = c.diff;
-        var abs     = Math.abs(diff);
-        var h = Math.floor(abs/60), m = abs%60;
-        var dStr    = (diff > 0 ? '+' : '-') + (h > 0 ? h+'h ' : '') + (m > 0 ? m+'min' : '') +
-                      ' (' + (diff > 0 ? 'atraso' : 'adelanto') + ')';
-        var diffCls = diff > 0 ? 'diff-atraso' : 'diff-adelanto';
-        var estCls  = c.estado === 'Abierto' ? 'estado-abierto' : 'estado-noabierto';
-        return '<div class="cambio-row card">' +
-          '<div class="cambio-code">' + c.codigo + '</div>' +
-          '<span class="badge">' + c.leg + '</span>' +
-          '<span style="font-size:13px;color:#555">' + c.vuelo + ' · ' + c.fecha + '</span>' +
-          '<div class="cambio-hora">' +
-            '<span class="antes">' + c.horaAntes + '</span> → <span class="ahora">' + c.horaAhora + '</span>' +
-          '</div>' +
-          '<span class="' + diffCls + '">' + dStr + '</span>' +
-          '<span class="badge ' + estCls + '">' + c.estado + '</span>' +
-          '</div>';
-      }).join('');
+      cambios.forEach(function(c) {
+        cambiosHorario[c.codigo + '|' + c.leg] = c;
+        if (c.estado === 'Abierto') {
+          var r = reservas.filter(function(x) { return x.codigo === c.codigo; })[0];
+          if (r) r.estado = 'Abierto';
+        }
+      });
+
+      actualizarStats();
+      renderTabla();
     })
     .catch(function(err) {
       btn.disabled = false;
       document.getElementById('sp-verificar').classList.remove('show');
-      document.getElementById('txt-verificar').textContent = 'Verificar ahora';
+      document.getElementById('txt-verificar').textContent = 'Verificar horarios';
       mostrarMsg('msg-verificar', '❌ Error: ' + err.message, 'error');
     });
 }
