@@ -253,6 +253,14 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
   padding: 2px 8px; border-radius: 20px;
   margin-left: 8px; vertical-align: middle;
 }
+.airline-badge {
+  display: inline-block;
+  background: #F0F4FA; color: #0A3560;
+  font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+  border: 1px solid #d0dce8;
+  white-space: nowrap;
+}
 
 /* ── Cambios de horario ── */
 .cambio-row {
@@ -500,7 +508,6 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
   <button onclick="showTab('importar')">📥 Importar Gmail</button>
   <button onclick="showTab('buscar')">🔍 Buscar Vuelos</button>
   <button onclick="showTab('estadisticas')">📈 Estadísticas</button>
-  <button onclick="showTab('smiles')">🎖 Smiles</button>
 </nav>
 
 <main>
@@ -626,6 +633,16 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
   <!-- ═══ TAB: BUSCAR ═══ -->
   <div id="tab-buscar" class="tab-content">
 
+    <!-- Toggle Precio $ / Millas -->
+    <div class="card" style="padding:12px 16px">
+      <div class="tipo-toggle" style="margin-bottom:0">
+        <button id="modo-btn-jetsmart" class="tipo-btn active" onclick="setModoBuscar('jetsmart')">💵 Precio en $ (JetSMART)</button>
+        <button id="modo-btn-smiles"   class="tipo-btn"        onclick="setModoBuscar('smiles')">🎖 Millas (Smiles)</button>
+      </div>
+    </div>
+
+  <div id="modo-jetsmart">
+
     <!-- Controles -->
     <div class="card">
       <div class="tipo-toggle">
@@ -698,7 +715,87 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
       </div>
     </div>
 
-  </div>
+  </div><!-- /modo-jetsmart -->
+
+  <div id="modo-smiles" style="display:none">
+
+    <!-- Controles -->
+    <div class="card">
+      <p style="font-size:12px;color:#888;margin-bottom:14px">Canjeá millas en vuelos Aerolíneas Argentinas y alianzas</p>
+
+      <div class="tipo-toggle" style="margin-bottom:14px">
+        <button id="sm-tipo-btn-ida" class="tipo-btn sm-tipo-btn active" onclick="smSetTipo('ida')">→ Solo ida</button>
+        <button id="sm-tipo-btn-rv"  class="tipo-btn sm-tipo-btn"        onclick="smSetTipo('rv')">⇄ Ida y vuelta</button>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+        <div class="form-group" style="flex:1;min-width:160px">
+          <label>Origen</label>
+          <select id="sm-origen" style="width:100%"></select>
+        </div>
+        <button onclick="smSwapRuta()" style="background:none;border:1.5px solid #d0dce8;border-radius:7px;padding:8px 11px;font-size:18px;cursor:pointer;color:#6B21A8;align-self:flex-end;margin-bottom:1px" title="Invertir ruta">⇄</button>
+        <div class="form-group" style="flex:1;min-width:160px">
+          <label>Destino</label>
+          <select id="sm-destino" style="width:100%"></select>
+        </div>
+        <button class="btn" id="btn-sm-buscar" onclick="smBuscarRuta()" style="background:#6B21A8;color:#fff;align-self:flex-end">
+          <span id="sp-sm-buscar" class="spinner"></span>
+          <span id="txt-sm-buscar">Buscar millas</span>
+        </button>
+      </div>
+      <div id="msg-smiles" class="msg" style="margin-top:12px;margin-bottom:0"></div>
+      <div style="margin-top:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+        <button onclick="smDiagnostico()" style="background:none;border:1px solid #d0dce8;border-radius:6px;padding:5px 12px;font-size:12px;color:#888;cursor:pointer">🔧 Probar API Smiles</button>
+        <span id="sm-diag-result" style="font-size:12px;color:#888"></span>
+      </div>
+    </div>
+
+    <!-- Calendarios + Panel -->
+    <div id="sm-cal-section" style="display:none">
+      <div class="buscar-layout">
+
+        <!-- Izquierda: calendarios -->
+        <div>
+          <div class="cal-section-wrap">
+            <div class="card" style="padding:16px 18px">
+              <div class="cal-titulo" id="sm-cal-titulo-ida" style="color:#6B21A8"></div>
+              <div id="sm-cal-ida"></div>
+            </div>
+            <div class="card" id="sm-cal-vuelta-sec" style="display:none;padding:16px 18px">
+              <div class="cal-titulo" id="sm-cal-titulo-vuelta" style="color:#6B21A8"></div>
+              <div id="sm-cal-vuelta"></div>
+            </div>
+          </div>
+          <div class="card" style="padding:10px 16px;margin-top:0">
+            <div class="leyenda">
+              <span style="font-weight:700;color:#555">Millas:</span>
+              <span><span class="leyenda-swatch" style="background:#6B21A8"></span>Más económico</span>
+              <span><span class="leyenda-swatch" style="background:#EDE7F6;border:1px solid #AB47BC"></span>Disponible</span>
+              <span><span class="leyenda-swatch" style="background:#f2f4f8;border:1px solid #ddd"></span>Sin vuelo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Derecha: panel de opciones -->
+        <div class="card resultado-panel-card">
+          <h2 style="margin-bottom:4px;color:#6B21A8">Opciones de canje</h2>
+          <p style="font-size:12px;color:#aaa;margin-bottom:14px">Seleccioná un día del calendario</p>
+          <div id="sm-panel-placeholder" style="color:#bbb;font-size:13px;padding:24px 0;text-align:center;line-height:1.7">
+            <div style="font-size:36px;margin-bottom:8px">🎖</div>
+            Hacé clic en un día disponible<br>para ver las opciones de canje.
+          </div>
+          <div id="sm-resultado-panel" style="display:none">
+            <div id="sm-panel-ida"></div>
+            <div id="sm-panel-vuelta"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /modo-smiles -->
+
+  </div><!-- /tab-buscar -->
 
   <!-- ═══ TAB: ESTADÍSTICAS ═══ -->
   <div id="tab-estadisticas" class="tab-content">
@@ -819,97 +916,11 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 
   </div>
 
-
-  <!-- ═══ TAB: SMILES ═══ -->
-  <div id="tab-smiles" class="tab-content">
-
-    <!-- Controles -->
-    <div class="card">
-      <div class="sm-header">
-        <span style="font-size:26px">🎖</span>
-        <div>
-          <h2>Buscador Smiles</h2>
-          <p>Canjeá millas en vuelos Aerolíneas Argentinas y alianzas</p>
-        </div>
-      </div>
-
-      <div class="tipo-toggle" style="margin-bottom:14px">
-        <button id="sm-tipo-btn-ida" class="tipo-btn sm-tipo-btn active" onclick="smSetTipo('ida')">→ Solo ida</button>
-        <button id="sm-tipo-btn-rv"  class="tipo-btn sm-tipo-btn"        onclick="smSetTipo('rv')">⇄ Ida y vuelta</button>
-      </div>
-
-      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
-        <div class="form-group" style="flex:1;min-width:160px">
-          <label>Origen</label>
-          <select id="sm-origen" style="width:100%"></select>
-        </div>
-        <button onclick="smSwapRuta()" style="background:none;border:1.5px solid #d0dce8;border-radius:7px;padding:8px 11px;font-size:18px;cursor:pointer;color:#6B21A8;align-self:flex-end;margin-bottom:1px" title="Invertir ruta">⇄</button>
-        <div class="form-group" style="flex:1;min-width:160px">
-          <label>Destino</label>
-          <select id="sm-destino" style="width:100%"></select>
-        </div>
-        <button class="btn" id="btn-sm-buscar" onclick="smBuscarRuta()" style="background:#6B21A8;color:#fff;align-self:flex-end">
-          <span id="sp-sm-buscar" class="spinner"></span>
-          <span id="txt-sm-buscar">Buscar millas</span>
-        </button>
-      </div>
-      <div id="msg-smiles" class="msg" style="margin-top:12px;margin-bottom:0"></div>
-      <div style="margin-top:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px">
-        <button onclick="smDiagnostico()" style="background:none;border:1px solid #d0dce8;border-radius:6px;padding:5px 12px;font-size:12px;color:#888;cursor:pointer">🔧 Probar API Smiles</button>
-        <span id="sm-diag-result" style="font-size:12px;color:#888"></span>
-      </div>
-    </div>
-
-    <!-- Calendarios + Panel -->
-    <div id="sm-cal-section" style="display:none">
-      <div class="buscar-layout">
-
-        <!-- Izquierda: calendarios -->
-        <div>
-          <div class="cal-section-wrap">
-            <div class="card" style="padding:16px 18px">
-              <div class="cal-titulo" id="sm-cal-titulo-ida" style="color:#6B21A8"></div>
-              <div id="sm-cal-ida"></div>
-            </div>
-            <div class="card" id="sm-cal-vuelta-sec" style="display:none;padding:16px 18px">
-              <div class="cal-titulo" id="sm-cal-titulo-vuelta" style="color:#6B21A8"></div>
-              <div id="sm-cal-vuelta"></div>
-            </div>
-          </div>
-          <div class="card" style="padding:10px 16px;margin-top:0">
-            <div class="leyenda">
-              <span style="font-weight:700;color:#555">Millas:</span>
-              <span><span class="leyenda-swatch" style="background:#6B21A8"></span>Más económico</span>
-              <span><span class="leyenda-swatch" style="background:#EDE7F6;border:1px solid #AB47BC"></span>Disponible</span>
-              <span><span class="leyenda-swatch" style="background:#f2f4f8;border:1px solid #ddd"></span>Sin vuelo</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Derecha: panel de opciones -->
-        <div class="card resultado-panel-card">
-          <h2 style="margin-bottom:4px;color:#6B21A8">Opciones de canje</h2>
-          <p style="font-size:12px;color:#aaa;margin-bottom:14px">Seleccioná un día del calendario</p>
-          <div id="sm-panel-placeholder" style="color:#bbb;font-size:13px;padding:24px 0;text-align:center;line-height:1.7">
-            <div style="font-size:36px;margin-bottom:8px">🎖</div>
-            Hacé clic en un día disponible<br>para ver las opciones de canje.
-          </div>
-          <div id="sm-resultado-panel" style="display:none">
-            <div id="sm-panel-ida"></div>
-            <div id="sm-panel-vuelta"></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-
 </main>
 
 <script>
 var reservas = [];
-var TABS     = ['reservas','indicadores','importar','buscar','estadisticas','smiles'];
+var TABS     = ['reservas','indicadores','importar','buscar','estadisticas'];
 
 // ── API ──
 function apiFetch(url, options) {
@@ -964,7 +975,34 @@ function showTab(nombre) {
   if (idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
   if (nombre === 'indicadores') renderIndicadores();
   if (nombre === 'estadisticas') initEstadisticas();
-  if (nombre === 'smiles') initSmiles();
+}
+
+// ── Toggle Precio $ (JetSMART) / Millas (Smiles) ───────────────
+var modoBuscarActual = 'jetsmart';
+function setModoBuscar(modo) {
+  modoBuscarActual = modo;
+  document.getElementById('modo-jetsmart').style.display = modo === 'jetsmart' ? '' : 'none';
+  document.getElementById('modo-smiles').style.display   = modo === 'smiles'   ? '' : 'none';
+  document.getElementById('modo-btn-jetsmart').classList.toggle('active', modo === 'jetsmart');
+  document.getElementById('modo-btn-smiles').classList.toggle('active', modo === 'smiles');
+  if (modo === 'smiles') initSmiles();
+}
+
+// ── Ícono por aerolínea ─────────────────────────────────────────
+function aerolineaIcono(nombre) {
+  var n = (nombre || '').toLowerCase();
+  if (n.indexOf('jetsmart')   >= 0) return { icon: '🛫', label: 'JetSMART' };
+  if (n.indexOf('aerolineas') >= 0 || n.indexOf('aerolíneas') >= 0) return { icon: '🇦🇷', label: 'Aerolíneas Argentinas' };
+  if (n.indexOf('latam')      >= 0) return { icon: '🔺', label: 'LATAM' };
+  if (n.indexOf('gol')        >= 0) return { icon: '🟠', label: 'GOL' };
+  if (n.indexOf('avianca')    >= 0) return { icon: '🔴', label: 'Avianca' };
+  if (n.indexOf('copa')       >= 0) return { icon: '🔷', label: 'Copa Airlines' };
+  if (n.indexOf('flybondi')   >= 0) return { icon: '🟣', label: 'Flybondi' };
+  return { icon: '✈️', label: nombre || 'Aerolínea' };
+}
+function aerolineaBadge(nombre) {
+  var a = aerolineaIcono(nombre);
+  return '<span class="airline-badge">' + a.icon + ' ' + a.label + '</span>';
 }
 
 // ── Cargar reservas ────────────────────────────────────────────
@@ -1573,7 +1611,7 @@ function actualizarPanel() {
   if (infoIda) {
     var pi = calSelIda.split('-');
     html += '<div class="panel-seccion">' +
-            '<div class="panel-leg">→ Ida</div>' +
+            '<div class="panel-leg">→ Ida ' + aerolineaBadge('JetSMART') + '</div>' +
             '<div class="panel-fecha">' + parseInt(pi[2]) + ' de ' + NOMBRES_MES[parseInt(pi[1])-1] + ' ' + pi[0] + '</div>' +
             renderPanelVuelos('ida', infoIda.vuelos, calFlightIda) +
             '</div>';
@@ -1581,7 +1619,7 @@ function actualizarPanel() {
   if (infoVuelta) {
     var pv = calSelVuelta.split('-');
     html += '<div class="panel-seccion">' +
-            '<div class="panel-leg">← Vuelta</div>' +
+            '<div class="panel-leg">← Vuelta ' + aerolineaBadge('JetSMART') + '</div>' +
             '<div class="panel-fecha">' + parseInt(pv[2]) + ' de ' + NOMBRES_MES[parseInt(pv[1])-1] + ' ' + pv[0] + '</div>' +
             renderPanelVuelos('vuelta', infoVuelta.vuelos, calFlightVuelta) +
             '</div>';
@@ -2294,7 +2332,6 @@ function smRenderPanelLeg(leg, fecha, vuelos, selIdx) {
     var metaParts = [];
     if (v.duracion)  metaParts.push(v.duracion);
     if (v.escala)    metaParts.push('via ' + v.escala);
-    if (v.aerolinea) metaParts.push(v.aerolinea);
     var metaStr  = metaParts.join(' · ');
 
     html += '<div class="sm-vuelo-card' + selCls + '" onclick="smSelVuelo(\'' + leg + '\',' + i + ')">' +
@@ -2302,6 +2339,7 @@ function smRenderPanelLeg(leg, fecha, vuelos, selIdx) {
         '<span class="sm-vuelo-num">' + (v.vuelo || '—') + (i === 0 ? '<span class="mejor-tag" style="background:#6B21A8">MEJOR</span>' : '') + '</span>' +
         '<span class="sm-vuelo-stops ' + stopCls + '">' + stopStr + '</span>' +
       '</div>' +
+      '<div style="margin-top:4px">' + aerolineaBadge(v.aerolinea) + '</div>' +
       '<div class="sm-vuelo-hora">' +
         '<strong>' + (v.salida || '—') + '</strong> → <strong>' + (v.llegada || '—') + '</strong>' +
         (v.asientos > 0 ? ' &nbsp;<span class="sm-asientos">' + v.asientos + ' as.</span>' : '') +
