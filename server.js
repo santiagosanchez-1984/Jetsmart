@@ -6,11 +6,6 @@ const { URL } = require('url');
 
 const PORT = process.env.PORT || 3000;
 
-const MIME = {
-  '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
-  '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml',
-};
-
 function patchRes(res) {
   res.status = function(code) { res._statusCode = code; return res; };
   res.json   = function(obj) {
@@ -57,12 +52,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Archivos estáticos desde public/
-  let filePath = path.join(__dirname, 'public', url === '/' ? 'index.html' : url);
-  if (!fs.existsSync(filePath)) filePath = path.join(__dirname, 'public', 'index.html');
-  const ext = path.extname(filePath);
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'text/plain' });
-  fs.createReadStream(filePath).pipe(res);
+  res.status(404).send('Not found');
 });
 
 server.listen(PORT, () => console.log('JetSMART local: http://localhost:' + PORT));
