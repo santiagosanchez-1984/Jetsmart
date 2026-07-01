@@ -1,0 +1,17 @@
+const cors = require('../lib/cors');
+const { ciudadAIata, buscarVuelosAPI } = require('../lib/jetsmart');
+
+module.exports = async function(req, res) {
+  cors(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  try {
+    const { origen, destino, fecha } = req.query;
+    const orig = ciudadAIata(origen);
+    const dest = ciudadAIata(destino);
+    const vuelos = await buscarVuelosAPI(orig, dest, fecha);
+    res.json(vuelos);
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message });
+  }
+};

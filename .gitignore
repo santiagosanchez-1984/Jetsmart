@@ -1,0 +1,10 @@
+node_modules
+.vercel
+.env
+.env.*
+!.env.example
+*.har
+debug_*.png
+jetsmart_debug.png
+step1_home.png
+claude-sheets-*.json
