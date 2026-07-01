@@ -1,9 +1,11 @@
 const cors = require('../lib/cors');
+const checkAuth = require('../lib/basicAuth');
 const { ciudadAIata, buscarVuelosAPI } = require('../lib/jetsmart');
 
 module.exports = async function(req, res) {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (!checkAuth(req, res)) return;
 
   try {
     const { origen, destino, fecha } = req.query;

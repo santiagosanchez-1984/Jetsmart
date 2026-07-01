@@ -1,4 +1,5 @@
 const cors = require('../lib/cors');
+const checkAuth = require('../lib/basicAuth');
 const { getSheetsClient, SHEET_ID, getSheetGid } = require('../lib/sheets');
 const { buscarEmailsItinerario } = require('../lib/gmail');
 const { parsearConfirmacion, construirFila, dmyAiso } = require('../lib/jetsmart');
@@ -8,6 +9,7 @@ const SHEET_VUELOS = 'Vuelos JetSMART';
 module.exports = async function(req, res) {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (!checkAuth(req, res)) return;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {

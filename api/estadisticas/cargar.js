@@ -1,4 +1,5 @@
 const cors = require('../../lib/cors');
+const checkAuth = require('../../lib/basicAuth');
 const { getSheetsClient, SHEET_ID } = require('../../lib/sheets');
 const { calcularEstadisticasHist, cargarUltimosCambios } = require('../../lib/jetsmart');
 
@@ -8,6 +9,7 @@ const SHEET_CAMBIOS = 'CambiosHorarios';
 module.exports = async function(req, res) {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (!checkAuth(req, res)) return;
 
   try {
     const sheets = getSheetsClient();

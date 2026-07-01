@@ -31,7 +31,8 @@ function patchRes(res) {
 
 const server = http.createServer(async (req, res) => {
   const fullUrl = new URL(req.url, `http://localhost:${PORT}`);
-  const url = fullUrl.pathname;
+  let url = fullUrl.pathname;
+  if (url === '/') url = '/api/index'; // mismo rewrite que vercel.json, para requerir login
   req.query = Object.fromEntries(fullUrl.searchParams);
   patchRes(res);
 

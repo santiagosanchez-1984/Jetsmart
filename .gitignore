@@ -8,3 +8,6 @@ debug_*.png
 jetsmart_debug.png
 step1_home.png
 claude-sheets-*.json
+
+.vercel
+.env*
