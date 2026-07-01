@@ -1039,9 +1039,15 @@ function renderLegCell(fecha, origen, destino, vuelo, salida, cambio) {
   var horaHtml = '<span class="hora">' + (salida || '') + '</span>';
   if (cambio) {
     var badgeCls = cambio.estado === 'Abierto' ? 'estado-abierto' : 'estado-noabierto';
+    var abs      = Math.abs(cambio.diff);
+    var h        = Math.floor(abs / 60), m = abs % 60;
+    var diffStr  = (h > 0 ? h + 'h ' : '') + (m > 0 ? m + 'min' : '') +
+                   ' ' + (cambio.diff > 0 ? 'atraso' : 'adelanto');
+    var diffCls  = cambio.diff > 0 ? 'diff-atraso' : 'diff-adelanto';
     horaHtml =
-      '<span class="hora" style="text-decoration:line-through;color:#aaa;font-weight:400">' + cambio.horaAntes + '</span> ' +
-      '<span class="hora" style="color:#E65100">→ ' + cambio.horaAhora + '</span> ' +
+      '<span class="hora" style="text-decoration:line-through;color:#000;font-weight:400">' + cambio.horaAntes + '</span> ' +
+      '<span class="hora" style="color:#E65100">→ ' + cambio.horaAhora + '</span><br>' +
+      '<span class="' + diffCls + '" style="font-size:11px">' + diffStr + '</span> ' +
       '<span class="badge ' + badgeCls + '" style="font-size:10px;padding:2px 8px">' + cambio.estado + '</span>';
   }
   return '<div class="col-ruta">' +
