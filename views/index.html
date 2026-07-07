@@ -121,12 +121,14 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 .est-tog.active.tog-Pendiente { background: #E3F2FD; color: #1565C0; border-color: #90CAF9; }
 .est-tog.active.tog-Abierto   { background: #FFF3E0; color: #E65100; border-color: #FFCC80; }
 .est-tog.active.tog-Tomado    { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
+.est-tog.active.tog-Perdido   { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
 
 /* ── Estado select inline ── */
 .est-sel { padding: 4px 8px; border-radius: 10px; border: 1.5px solid #d0dce8; font-size: 12px; font-weight: 700; cursor: pointer; outline: none; min-width: 95px; transition: background .15s; }
 .est-sel.st-Pendiente { background: #E3F2FD; color: #1565C0; border-color: #90CAF9; }
 .est-sel.st-Abierto   { background: #FFF3E0; color: #E65100; border-color: #FFCC80; }
 .est-sel.st-Tomado    { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
+.est-sel.st-Perdido   { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
 
 /* ── Rep toggle button ── */
 .rep-btn { padding: 4px 12px; border-radius: 12px; border: none; font-size: 11px; font-weight: 800; cursor: pointer; transition: all .12s; }
@@ -145,6 +147,7 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 .badge-pendiente { background: #E3F2FD; color: #1565C0; }
 .badge-tomado    { background: #E8F5E9; color: #2E7D32; }
 .badge-abierto   { background: #FFF3E0; color: #E65100; }
+.badge-perdido   { background: #FFEBEE; color: #C62828; }
 .badge-si        { background: #FFF3CD; color: #856404; }
 .badge-no        { background: #F5F5F5; color: #888; }
 
@@ -250,9 +253,11 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 .mejor-tag {
   background: #2E7D32; color: #fff;
   font-size: 10px; font-weight: 700;
-  padding: 2px 8px; border-radius: 20px;
+  padding: 2px 8px 2px 6px; border-radius: 20px;
   margin-left: 8px; vertical-align: middle;
+  letter-spacing: 0.3px;
 }
+.mejor-tag::before { content: '★ '; }
 .airline-badge {
   display: inline-block;
   background: #F0F4FA; color: #0A3560;
@@ -287,6 +292,7 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 .stat-card.pendiente { border-top-color: #1565C0; }
 .stat-card.tomado    { border-top-color: #2E7D32; }
 .stat-card.abierto   { border-top-color: #E65100; }
+.stat-card.perdido   { border-top-color: #C62828; }
 .stat-num   { font-size: 26px; font-weight: 800; }
 .stat-label { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; }
 
@@ -349,9 +355,9 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 .cal-mes-nombre { font-size: 14px; font-weight: 700; color: #0A3560; }
 .cal-titulo { font-size: 11px; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
 
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .cal-header { text-align: center; font-size: 11px; font-weight: 700; color: #aaa; padding: 5px 0; }
-.cal-day { border-radius: 6px; padding: 5px 2px; text-align: center; cursor: pointer; min-height: 50px; transition: transform .12s, box-shadow .12s; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.cal-day { border-radius: 9px; padding: 5px 2px; text-align: center; cursor: pointer; min-height: 50px; transition: transform .12s, box-shadow .12s; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .cal-day:hover:not(.empty):not(.sin-vuelo) { transform: scale(1.07); box-shadow: 0 3px 10px rgba(0,0,0,.2); position: relative; z-index: 2; }
 .cal-day.empty     { cursor: default; }
 .cal-day.sin-vuelo { background: #f2f4f8; cursor: default; }
@@ -359,10 +365,14 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 .cal-num    { font-size: 12px; font-weight: 700; line-height: 1; }
 .cal-precio { font-size: 10px; font-weight: 800; margin-top: 3px; line-height: 1; }
 .cal-airline-icon { font-size: 12px; line-height: 1; margin-top: 1px; }
-.cal-day.selected { outline: 3px solid #FFD700; outline-offset: 1px; position: relative; z-index: 3; }
+.cal-day.selected {
+  outline: 2.5px solid #fff; outline-offset: -4px;
+  box-shadow: 0 0 0 3px #0A3560, 0 4px 12px rgba(10,53,96,.35);
+  position: relative; z-index: 3; transform: scale(1.05);
+}
 
 /* Solo 2 colores */
-.cal-day.p-cheap  { background: #2196F3; color: #fff; }
+.cal-day.p-cheap  { background: #2196F3; color: #fff; box-shadow: 0 2px 6px rgba(33,150,243,.35); }
 .cal-day.p-normal { background: #E3F2FD; color: #1565C0; }
 
 /* Panel de resultados */
@@ -370,15 +380,37 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 .panel-seccion:last-of-type { border-bottom: none; }
 .panel-leg   { font-size: 11px; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; }
 .panel-fecha { font-size: 15px; font-weight: 700; color: #0A3560; margin-bottom: 10px; }
-.panel-vuelo { padding: 9px 12px; border-radius: 7px; margin-bottom: 6px; border: 1.5px solid #e0e8f0; cursor: pointer; transition: all .12s; }
-.panel-vuelo:hover { border-color: #1565C0; background: #f5f9ff; }
-.panel-vuelo-sel   { border-color: #1565C0 !important; background: #E3F2FD !important; }
+.panel-vuelo { padding: 13px 14px 11px; border-radius: 12px; margin-bottom: 10px; margin-top: 8px; border: 1.5px solid #e0e8f0; cursor: pointer; transition: all .15s; background: #fff; position: relative; }
+.panel-vuelo:hover { border-color: #1565C0; background: #f5f9ff; box-shadow: 0 3px 10px rgba(21,101,192,.12); transform: translateY(-1px); }
+.panel-vuelo-sel   { border-color: #1565C0 !important; background: #E3F2FD !important; box-shadow: 0 3px 10px rgba(21,101,192,.15); }
 .panel-vuelo-num   { font-size: 14px; font-weight: 800; color: #0A3560; }
-.panel-vuelo-hora  { font-size: 12px; color: #666; margin-top: 3px; }
-.panel-vuelo-precio { font-size: 14px; font-weight: 800; color: #1565C0; white-space: nowrap; }
-.panel-total { background: linear-gradient(135deg,#0A3560,#1a5a9a); color: #fff; border-radius: 10px; padding: 16px; margin-top: 14px; text-align: center; }
-.panel-total-label   { font-size: 11px; font-weight: 800; letter-spacing: 1px; opacity: 0.7; text-transform: uppercase; }
-.panel-total-precio  { font-size: 28px; font-weight: 800; margin: 5px 0 3px; }
+.panel-vuelo-hora  { font-size: 12px; color: #666; margin-top: 4px; }
+
+/* ── Fila estilo comparador (Turismocity) ── */
+.tc-ribbon {
+  position: absolute; top: -10px; left: 12px;
+  background: #E8F5E9; color: #2E7D32; border: 1px solid #fff;
+  font-size: 9.5px; font-weight: 800; letter-spacing: .2px;
+  padding: 3px 10px; border-radius: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  text-transform: uppercase; white-space: nowrap;
+}
+.tc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.tc-route { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 150px; }
+.tc-time  { font-size: 16px; font-weight: 800; color: #0A3560; line-height: 1.1; }
+.tc-time-lbl { font-size: 9.5px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .4px; }
+.tc-mid   { display: flex; flex-direction: column; align-items: center; min-width: 66px; flex: 1; max-width: 100px; }
+.tc-mid-txt { font-size: 10px; color: #999; white-space: nowrap; }
+.tc-mid-line { width: 100%; height: 1px; background: #e0e0e0; margin: 3px 0; }
+.tc-stops { font-size: 10px; font-weight: 800; }
+.tc-stops.directo { color: #2E7D32; }
+.tc-stops.escala  { color: #E65100; }
+.tc-price-block { text-align: right; padding-left: 12px; border-left: 1.5px solid #eee; white-space: nowrap; }
+.tc-price { font-size: 18px; font-weight: 800; color: #1565C0; line-height: 1.15; }
+.tc-price-sub { font-size: 10.5px; color: #888; margin-top: 1px; }
+.panel-vuelo-precio { font-size: 17px; font-weight: 800; color: #1565C0; white-space: nowrap; }
+.panel-total { background: linear-gradient(135deg,#0A3560,#1a5a9a); color: #fff; border-radius: 12px; padding: 18px; margin-top: 16px; text-align: center; box-shadow: 0 4px 14px rgba(10,53,96,.25); }
+.panel-total-label   { font-size: 11px; font-weight: 800; letter-spacing: 1px; opacity: 0.75; text-transform: uppercase; }
+.panel-total-precio  { font-size: 30px; font-weight: 800; margin: 6px 0 3px; }
 .panel-total-detalle { font-size: 11px; opacity: 0.65; }
 
 .leyenda { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: #555; }
@@ -433,13 +465,14 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 
 .sm-tipo-btn.active { background: #6B21A8 !important; border-color: #6B21A8 !important; color: #fff !important; }
 
-.cal-day.sm-cheap  { background: #6B21A8; color: #fff; }
+.cal-day.sm-cheap  { background: #6B21A8; color: #fff; box-shadow: 0 2px 6px rgba(107,33,168,.35); }
 .cal-day.sm-normal { background: #EDE7F6; color: #4A148C; }
 
 .sm-fare-cards { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
 .sm-fare-card {
   border-radius: 9px; padding: 12px 15px;
   border: 2px solid transparent; cursor: default;
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
 }
 .sm-fare-smiles { background: #F3E8FF; border-color: #AB47BC; }
 .sm-fare-club   { background: #E8F5E9; border-color: #66BB6A; }
@@ -456,12 +489,12 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 .sm-fare-ahorro { font-size: 11px; font-weight: 700; color: #2E7D32; }
 
 .sm-vuelo-card {
-  padding: 11px 14px; border-radius: 8px;
-  border: 1.5px solid #e0ddf0; margin-bottom: 7px;
-  cursor: pointer; transition: all .12s;
+  padding: 14px 14px 12px; border-radius: 10px;
+  border: 1.5px solid #e0ddf0; margin-bottom: 10px; margin-top: 8px;
+  cursor: pointer; transition: all .15s; background: #fff; position: relative;
 }
-.sm-vuelo-card:hover  { border-color: #7B1FA2; background: #FAF5FF; }
-.sm-vuelo-card.sm-sel { border-color: #6B21A8; background: #EDE7F6; }
+.sm-vuelo-card:hover  { border-color: #7B1FA2; background: #FAF5FF; box-shadow: 0 3px 10px rgba(107,33,168,.12); transform: translateY(-1px); }
+.sm-vuelo-card.sm-sel { border-color: #6B21A8; background: #EDE7F6; box-shadow: 0 3px 10px rgba(107,33,168,.15); }
 .sm-vuelo-top    { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .sm-vuelo-num    { font-size: 14px; font-weight: 800; color: #4A148C; }
 .sm-vuelo-stops  { font-size: 11px; padding: 2px 9px; border-radius: 10px; font-weight: 700; }
@@ -529,10 +562,23 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
     </div>
     <div id="msg-verificar" class="msg"></div>
 
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:14px;padding:14px 20px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:24px">📧</span>
+        <span style="font-size:13px;color:#555">Revisá tu Gmail por cambios de fecha/vuelo que hayas hecho en JetSMART (mismo código de reserva)</span>
+      </div>
+      <button class="btn btn-orange" id="btn-verificar-cambios" onclick="verificarCambiosVuelos()">
+        <span id="sp-verificar-cambios" class="spinner"></span>
+        <span id="txt-verificar-cambios">Verificar cambios en vuelos</span>
+      </button>
+    </div>
+    <div id="msg-verificar-cambios" class="msg"></div>
+
     <div class="stats">
       <div class="stat-card pendiente"><div class="stat-num" id="cnt-pendiente">–</div><div class="stat-label">Pendiente</div></div>
       <div class="stat-card abierto">  <div class="stat-num" id="cnt-abierto">–</div>  <div class="stat-label">Abierto</div></div>
       <div class="stat-card tomado">   <div class="stat-num" id="cnt-tomado">–</div>   <div class="stat-label">Tomado</div></div>
+      <div class="stat-card perdido">  <div class="stat-num" id="cnt-perdido">–</div>  <div class="stat-label">Perdido</div></div>
     </div>
 
     <div class="card">
@@ -545,8 +591,9 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
           <label>Estado</label>
           <div class="estado-toggles">
             <button class="est-tog tog-Pendiente active" data-est="Pendiente" onclick="toggleEstadoFiltro(this)">Pendiente</button>
-            <button class="est-tog tog-Abierto active"   data-est="Abierto"   onclick="toggleEstadoFiltro(this)">Abierto</button>
-            <button class="est-tog tog-Tomado active"    data-est="Tomado"    onclick="toggleEstadoFiltro(this)">Tomado</button>
+            <button class="est-tog tog-Abierto"   data-est="Abierto"   onclick="toggleEstadoFiltro(this)">Abierto</button>
+            <button class="est-tog tog-Tomado"    data-est="Tomado"    onclick="toggleEstadoFiltro(this)">Tomado</button>
+            <button class="est-tog tog-Perdido"   data-est="Perdido"   onclick="toggleEstadoFiltro(this)">Perdido</button>
           </div>
         </div>
         <div>
@@ -705,7 +752,7 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 
         <!-- Derecha: panel de resultados -->
         <div class="card resultado-panel-card">
-          <h2 style="margin-bottom:16px">Vuelos seleccionados</h2>
+          <h2 style="margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #eef2f7">🎫 Vuelos seleccionados</h2>
           <div id="panel-placeholder" style="color:#888;font-size:13px;padding:16px 0;text-align:center;line-height:1.6">
             Hacé clic en un día del<br>calendario para ver los vuelos.
           </div>
@@ -780,8 +827,8 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 
         <!-- Derecha: panel de opciones -->
         <div class="card resultado-panel-card">
-          <h2 style="margin-bottom:4px;color:#6B21A8">Opciones de canje</h2>
-          <p style="font-size:12px;color:#aaa;margin-bottom:14px">Seleccioná un día del calendario</p>
+          <h2 style="margin-bottom:4px;color:#6B21A8">🎖 Opciones de canje</h2>
+          <p style="font-size:12px;color:#aaa;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #f3edfa">Seleccioná un día del calendario</p>
           <div id="sm-panel-placeholder" style="color:#bbb;font-size:13px;padding:24px 0;text-align:center;line-height:1.7">
             <div style="font-size:36px;margin-bottom:8px">🎖</div>
             Hacé clic en un día disponible<br>para ver las opciones de canje.
@@ -996,18 +1043,18 @@ function setModoBuscar(modo) {
 // ── Ícono por aerolínea ─────────────────────────────────────────
 function aerolineaIcono(nombre) {
   var n = (nombre || '').toLowerCase();
-  if (n.indexOf('jetsmart')   >= 0) return { icon: '🛫', label: 'JetSMART' };
-  if (n.indexOf('aerolineas') >= 0 || n.indexOf('aerolíneas') >= 0) return { icon: '🇦🇷', label: 'Aerolíneas Argentinas' };
-  if (n.indexOf('latam')      >= 0) return { icon: '🔺', label: 'LATAM' };
-  if (n.indexOf('gol')        >= 0) return { icon: '🟠', label: 'GOL' };
-  if (n.indexOf('avianca')    >= 0) return { icon: '🔴', label: 'Avianca' };
-  if (n.indexOf('copa')       >= 0) return { icon: '🔷', label: 'Copa Airlines' };
-  if (n.indexOf('flybondi')   >= 0) return { icon: '🟣', label: 'Flybondi' };
-  return { icon: '✈️', label: nombre || 'Aerolínea' };
+  if (n.indexOf('jetsmart')   >= 0) return { icon: '🛫', label: 'JetSMART', bg: '#E3F2FD', fg: '#0A3560' };
+  if (n.indexOf('aerolineas') >= 0 || n.indexOf('aerolíneas') >= 0) return { icon: '🇦🇷', label: 'Aerolíneas Argentinas', bg: '#E1F0FF', fg: '#0D47A1' };
+  if (n.indexOf('latam')      >= 0) return { icon: '🔺', label: 'LATAM', bg: '#FDE8E8', fg: '#B71C1C' };
+  if (n.indexOf('gol')        >= 0) return { icon: '🟠', label: 'GOL', bg: '#FFF3E0', fg: '#E65100' };
+  if (n.indexOf('avianca')    >= 0) return { icon: '🔴', label: 'Avianca', bg: '#FDE8E8', fg: '#C62828' };
+  if (n.indexOf('copa')       >= 0) return { icon: '🔷', label: 'Copa Airlines', bg: '#E3F2FD', fg: '#01579B' };
+  if (n.indexOf('flybondi')   >= 0) return { icon: '🟣', label: 'Flybondi', bg: '#F3E5F5', fg: '#6A1B9A' };
+  return { icon: '✈️', label: nombre || 'Aerolínea', bg: '#F0F4FA', fg: '#0A3560' };
 }
 function aerolineaBadge(nombre) {
   var a = aerolineaIcono(nombre);
-  return '<span class="airline-badge">' + a.icon + ' ' + a.label + '</span>';
+  return '<span class="airline-badge" style="background:' + a.bg + ';color:' + a.fg + ';border-color:' + a.bg + '">' + a.icon + ' ' + a.label + '</span>';
 }
 function smVueloMasBarato(vuelos) {
   var mejor = null, mejorMillas = null;
@@ -1074,15 +1121,16 @@ function poblarFiltrosIndicadores() {
 }
 
 function actualizarStats() {
-  var counts = { Pendiente: 0, Abierto: 0, Tomado: 0 };
+  var counts = { Pendiente: 0, Abierto: 0, Tomado: 0, Perdido: 0 };
   reservas.forEach(function(r) { if (counts[r.estado] !== undefined) counts[r.estado]++; });
   document.getElementById('cnt-pendiente').textContent = counts.Pendiente;
   document.getElementById('cnt-abierto').textContent   = counts.Abierto;
   document.getElementById('cnt-tomado').textContent    = counts.Tomado;
+  document.getElementById('cnt-perdido').textContent   = counts.Perdido;
 }
 
 // ── Tabla de reservas ──────────────────────────────────────────
-var filtroEstados = { Pendiente: true, Abierto: true, Tomado: true };
+var filtroEstados = { Pendiente: true, Abierto: false, Tomado: false, Perdido: false };
 var cambiosHorario = {}; // clave "codigo|IDA" o "codigo|VUELTA" -> {horaAntes, horaAhora, diff, estado}
 
 function renderLegCell(fecha, origen, destino, vuelo, salida, cambio) {
@@ -1115,13 +1163,21 @@ function toggleEstadoFiltro(btn) {
   renderTabla();
 }
 
+function fechaDmyMs(dmy) {
+  if (!dmy) return null;
+  var p = dmy.split('/');
+  if (p.length < 3) return null;
+  return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0])).getTime();
+}
+
 function renderTabla() {
   var texto   = document.getElementById('f-texto').value.toLowerCase();
   var mes     = document.getElementById('f-mes').value;
   var titular = document.getElementById('f-titular').value;
 
   var activos = Object.keys(filtroEstados).filter(function(e) { return filtroEstados[e]; });
-  var filtrarEst = activos.length > 0 && activos.length < 3;
+  var totalEstados = Object.keys(filtroEstados).length;
+  var filtrarEst = activos.length > 0 && activos.length < totalEstados;
 
   var filtradas = reservas.filter(function(r) {
     if (filtrarEst && activos.indexOf(r.estado) < 0) return false;
@@ -1141,8 +1197,16 @@ function renderTabla() {
     return;
   }
 
+  filtradas.sort(function(a, b) {
+    var ma = fechaDmyMs(a.fechaIda), mb = fechaDmyMs(b.fechaIda);
+    if (ma === null && mb === null) return 0;
+    if (ma === null) return 1;
+    if (mb === null) return -1;
+    return mb - ma;
+  });
+
   var html = '<table><thead><tr>' +
-    '<th>Código</th><th>Estado</th><th>Titular</th>' +
+    '<th>Código</th><th>Estado</th><th>Titular</th><th>Año</th><th>Mes</th>' +
     '<th>Ida</th><th>Vuelta</th><th>Rep.</th><th>Adm. Reserva</th>' +
     '</tr></thead><tbody>';
 
@@ -1160,6 +1224,7 @@ function renderTabla() {
                  '<option value="Pendiente"' + (r.estado==='Pendiente'?' selected':'') + '>Pendiente</option>' +
                  '<option value="Abierto"'   + (r.estado==='Abierto'  ?' selected':'') + '>Abierto</option>' +
                  '<option value="Tomado"'    + (r.estado==='Tomado'   ?' selected':'') + '>Tomado</option>' +
+                 '<option value="Perdido"'   + (r.estado==='Perdido'  ?' selected':'') + '>Perdido</option>' +
                  '</select>';
 
     var verUrl = 'https://booking.jetsmart.com/Booking/Retrieve?rl=' + r.codigo + '&ln=sanchez';
@@ -1167,6 +1232,8 @@ function renderTabla() {
       '<td class="col-code">' + r.codigo + '</td>' +
       '<td>' + estSel + '</td>' +
       '<td class="col-titular">' + r.titular + '</td>' +
+      '<td>' + (r.anio || '—') + '</td>' +
+      '<td>' + (r.mes || '—') + '</td>' +
       '<td>' + ida + '</td>' +
       '<td>' + vuelta + '</td>' +
       '<td>' + repBtn + '</td>' +
@@ -1317,7 +1384,7 @@ function renderIndProximos(data) {
     var ms   = fechaMs(r.fechaIda);
     var dias = Math.round((ms - hoyMs) / 86400000);
     var dLabel = dias === 0 ? 'hoy' : dias === 1 ? 'mañana' : 'en ' + dias + ' días';
-    var badgeClass = { Pendiente:'badge-pendiente', Tomado:'badge-tomado', Abierto:'badge-abierto' }[r.estado] || 'badge-no';
+    var badgeClass = { Pendiente:'badge-pendiente', Tomado:'badge-tomado', Abierto:'badge-abierto', Perdido:'badge-perdido' }[r.estado] || 'badge-no';
 
     return '<div class="proximo-card">' +
            '<div class="proximo-fecha">' +
@@ -1399,6 +1466,41 @@ function verificar() {
       document.getElementById('sp-verificar').classList.remove('show');
       document.getElementById('txt-verificar').textContent = 'Verificar horarios';
       mostrarMsg('msg-verificar', '❌ Error: ' + err.message, 'error');
+    });
+}
+
+// ── Verificar cambios en vuelos (Gmail, reservas ya cargadas) ──
+function verificarCambiosVuelos() {
+  var btn = document.getElementById('btn-verificar-cambios');
+  btn.disabled = true;
+  document.getElementById('sp-verificar-cambios').classList.add('show');
+  document.getElementById('txt-verificar-cambios').textContent = 'Revisando Gmail...';
+  ocultarMsg('msg-verificar-cambios');
+
+  apiFetch('/api/verificar-cambios-vuelos', { method: 'POST' })
+    .then(function(cambios) {
+      btn.disabled = false;
+      document.getElementById('sp-verificar-cambios').classList.remove('show');
+      document.getElementById('txt-verificar-cambios').textContent = 'Verificar cambios en vuelos';
+
+      if (cambios.length === 0) {
+        mostrarMsg('msg-verificar-cambios', '✅ Sin cambios detectados en tus reservas.', 'ok');
+        return;
+      }
+
+      var detalle = cambios.map(function(c) {
+        var partes = c.cambios.map(function(d) { return d.campo + ': ' + d.antes + ' → ' + d.ahora; }).join(', ');
+        return c.codigo + ' (' + c.titular + '): ' + partes;
+      }).join(' | ');
+
+      mostrarMsg('msg-verificar-cambios', '✏️ Se actualizaron ' + cambios.length + ' reserva(s). ' + detalle, 'error');
+      cargarReservas();
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      document.getElementById('sp-verificar-cambios').classList.remove('show');
+      document.getElementById('txt-verificar-cambios').textContent = 'Verificar cambios en vuelos';
+      mostrarMsg('msg-verificar-cambios', '❌ Error: ' + err.message, 'error');
     });
 }
 
@@ -1650,7 +1752,7 @@ function actualizarPanel() {
     if (pIda !== null && pVuelta !== null)
       detalle = '$' + numARS(pIda) + ' + $' + numARS(pVuelta) + ' ARS';
     html += '<div class="panel-total">' +
-            '<div class="panel-total-label">Total estimado</div>' +
+            '<div class="panel-total-label">✈ Total estimado</div>' +
             '<div class="panel-total-precio">$' + numARS(total) + ' ARS</div>' +
             (detalle ? '<div class="panel-total-detalle">' + detalle + '</div>' : '') +
             '</div>';
@@ -1665,14 +1767,27 @@ function renderPanelVuelos(leg, vuelos, selFlight) {
     var isSel   = selFlight ? (selFlight === v) : i === 0;
     var selCls  = isSel ? ' panel-vuelo-sel' : '';
     var precio  = v.total != null ? '$' + numARS(v.total) + ' ARS' : '—';
-    var imp     = v.imp   != null ? ' (+$' + numARS(v.imp) + ' imp.)' : '';
+    var sub     = v.imp != null ? '+$' + numARS(v.imp) + ' imp.' : 'Impuestos incluidos';
     return '<div class="panel-vuelo' + selCls + '" onclick="seleccionarVuelo(\'' + leg + '\',' + i + ')">' +
-           '<div style="display:flex;justify-content:space-between;align-items:center">' +
-             '<span class="panel-vuelo-num">' + v.vuelo + (i===0?'<span class="mejor-tag">MEJOR</span>':'') + '</span>' +
-             '<span class="panel-vuelo-precio">' + precio + '</span>' +
+           (i === 0 ? '<div class="tc-ribbon">★ Mejor precio</div>' : '') +
+           '<div class="tc-row">' +
+             '<div class="tc-route">' +
+               aerolineaBadge('JetSMART') +
+               '<div>' +
+                 '<div class="tc-time-lbl">Salida</div>' +
+                 '<div class="tc-time">' + v.hora + '</div>' +
+               '</div>' +
+             '</div>' +
+             '<div class="tc-mid">' +
+               '<div class="tc-mid-txt">' + v.vuelo + '</div>' +
+               '<div class="tc-mid-line"></div>' +
+               '<div class="tc-stops' + (v.asientos ? ' escala' : ' directo') + '">' + (v.asientos ? v.asientos + ' asientos' : 'Disponible') + '</div>' +
+             '</div>' +
+             '<div class="tc-price-block">' +
+               '<div class="tc-price">' + precio + '</div>' +
+               '<div class="tc-price-sub">' + sub + '</div>' +
+             '</div>' +
            '</div>' +
-           '<div class="panel-vuelo-hora">Salida: <strong>' + v.hora + '</strong>' +
-             (v.asientos ? ' · ' + v.asientos + ' as.' : '') + imp + '</div>' +
            '</div>';
   }).join('');
 }
@@ -2124,8 +2239,9 @@ function smFetchMes(leg) {
   var capturedCache = cache;
   var capturedLeg   = leg;
 
-  var promises = fechas.map(function(f) {
-    return fetch(SM_PROXY + '?orig=' + orig + '&dest=' + dest + '&fecha=' + f)
+  var promises = fechas.map(function(f, i) {
+    return new Promise(function(resolve) { setTimeout(resolve, i * 150); })
+      .then(function() { return fetch(SM_PROXY + '?orig=' + orig + '&dest=' + dest + '&fecha=' + f); })
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(data) { return { fecha: f, data: data }; })
       .catch(function() { return { fecha: f, data: null }; });
@@ -2345,20 +2461,31 @@ function smRenderPanelLeg(leg, fecha, vuelos, selIdx) {
     var stopCls  = v.paradas === 0 ? 'sm-stop-directo' : 'sm-stop-escala';
     var selCls   = isSel ? ' sm-sel' : '';
     var metaParts = [];
-    if (v.duracion)  metaParts.push(v.duracion);
-    if (v.escala)    metaParts.push('via ' + v.escala);
+    if (v.escala) metaParts.push('via ' + v.escala);
     var metaStr  = metaParts.join(' · ');
+    var mejorFare = v.fares.SMILES || v.fares.SMILES_CLUB || v.fares.SMILES_MONEY;
 
     html += '<div class="sm-vuelo-card' + selCls + '" onclick="smSelVuelo(\'' + leg + '\',' + i + ')">' +
-      '<div class="sm-vuelo-top">' +
-        '<span class="sm-vuelo-num">' + (v.vuelo || '—') + (i === 0 ? '<span class="mejor-tag" style="background:#6B21A8">MEJOR</span>' : '') + '</span>' +
-        '<span class="sm-vuelo-stops ' + stopCls + '">' + stopStr + '</span>' +
+      (i === 0 ? '<div class="tc-ribbon" style="background:#F3E8FF;color:#6B21A8">★ Mejor opción</div>' : '') +
+      '<div style="margin-bottom:8px">' + aerolineaBadge(v.aerolinea) +
+        (v.asientos > 0 ? ' <span class="sm-asientos">' + v.asientos + ' as.</span>' : '') +
       '</div>' +
-      '<div style="margin-top:4px">' + aerolineaBadge(v.aerolinea) + '</div>' +
-      '<div class="sm-vuelo-hora">' +
-        '<strong>' + (v.salida || '—') + '</strong> → <strong>' + (v.llegada || '—') + '</strong>' +
-        (v.asientos > 0 ? ' &nbsp;<span class="sm-asientos">' + v.asientos + ' as.</span>' : '') +
+      '<div class="tc-row">' +
+        '<div class="tc-route">' +
+          '<div><div class="tc-time-lbl">Salida</div><div class="tc-time">' + (v.salida || '—') + '</div></div>' +
+        '</div>' +
+        '<div class="tc-mid">' +
+          '<div class="tc-mid-txt">' + (v.duracion || '') + '</div>' +
+          '<div class="tc-mid-line"></div>' +
+          '<div class="tc-stops ' + (v.paradas === 0 ? 'directo' : 'escala') + '">' + stopStr + '</div>' +
+        '</div>' +
+        '<div class="tc-route" style="justify-content:flex-end;text-align:right">' +
+          '<div><div class="tc-time-lbl">Llegada</div><div class="tc-time">' + (v.llegada || '—') + '</div></div>' +
+        '</div>' +
       '</div>' +
+      (mejorFare ? '<div class="tc-price-block" style="border:none;text-align:left;padding-left:0;margin-top:10px">' +
+        '<div class="tc-price" style="color:#6B21A8">desde ' + numMillas(mejorFare.miles) + '</div>' +
+      '</div>' : '') +
       (metaStr ? '<div class="sm-vuelo-meta">' + metaStr + '</div>' : '') +
     '</div>';
   });
