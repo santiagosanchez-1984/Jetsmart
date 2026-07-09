@@ -1,7 +1,7 @@
 const cors = require('../lib/cors');
 const { isAuthenticated } = require('../lib/auth');
 const { getSheetsClient, SHEET_ID } = require('../lib/sheets');
-const { buscarEmailsItinerario } = require('../lib/gmail');
+const { getGmailClient, buscarEmailPorCodigo, mapConcurrencia } = require('../lib/gmail');
 const { parsearConfirmacion, iataACiudad, padHora, MESES } = require('../lib/jetsmart');
 
 const SHEET_VUELOS = 'Vuelos JetSMART';
@@ -27,19 +27,25 @@ module.exports = async function(req, res) {
 
     const porCodigo = {};
     filas.forEach((f, i) => { if (f[0]) porCodigo[f[0].trim()] = { fila: i + 2, row: f }; });
+    const codigos = Object.keys(porCodigo);
 
-    const bodies = await buscarEmailsItinerario();
-    const vistos = {};
+    // Busqueda dirigida por codigo (no un escaneo de los ultimos N emails):
+    // asi una reserva vieja con un cambio real no se pierde solo porque hay
+    // muchos emails mas nuevos de otras reservas en el medio.
+    const gmail = getGmailClient();
+    const bodiesPorCodigo = await mapConcurrencia(codigos, 8, codigo => buscarEmailPorCodigo(gmail, codigo));
+
     const cambios = [];
     const data2update = [];
 
-    bodies.forEach(body => {
-      const parsed = parsearConfirmacion(body);
-      if (!parsed || vistos[parsed.codigo]) return;
-      vistos[parsed.codigo] = true;
+    codigos.forEach((codigo, i) => {
+      const body = bodiesPorCodigo[i];
+      if (!body) return; // sin email de itinerario para esta reserva
 
-      const existente = porCodigo[parsed.codigo];
-      if (!existente) return; // reserva nueva -> la maneja el boton Importar
+      const parsed = parsearConfirmacion(body);
+      if (!parsed || parsed.codigo !== codigo) return;
+
+      const existente = porCodigo[codigo];
 
       const diffs = [];
       const updates = {};
@@ -69,7 +75,11 @@ module.exports = async function(req, res) {
     if (data2update.length > 0) {
       await sheets.spreadsheets.values.batchUpdate({
         spreadsheetId: SHEET_ID,
-        requestBody: { valueInputOption: 'USER_ENTERED', data: data2update },
+        // RAW (no USER_ENTERED): los valores ya vienen formateados exactamente
+        // como deben guardarse (dd/mm/yyyy, HH:MM) — USER_ENTERED hace que Sheets
+        // los reinterprete como fecha/hora reales y a veces los reformatea
+        // (ej. pierde el cero a la izquierda del dia).
+        requestBody: { valueInputOption: 'RAW', data: data2update },
       });
     }
 

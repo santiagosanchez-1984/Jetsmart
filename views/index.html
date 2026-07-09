@@ -1452,10 +1452,6 @@ function verificar() {
 
       cambios.forEach(function(c) {
         cambiosHorario[c.codigo + '|' + c.leg] = c;
-        if (c.estado === 'Abierto') {
-          var r = reservas.filter(function(x) { return x.codigo === c.codigo; })[0];
-          if (r) r.estado = 'Abierto';
-        }
       });
 
       actualizarStats();

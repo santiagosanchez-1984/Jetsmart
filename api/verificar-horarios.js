@@ -52,18 +52,6 @@ module.exports = async function(req, res) {
       }
     }
 
-    const data2update = [];
-    cambios.filter(c => c.estado === 'Abierto').forEach(c => {
-      const idx = filas.findIndex(f => f[0].trim() === c.codigo);
-      if (idx >= 0) data2update.push({ range: `${SHEET_VUELOS}!B${idx + 2}`, values: [['Abierto']] });
-    });
-    if (data2update.length > 0) {
-      await sheets.spreadsheets.values.batchUpdate({
-        spreadsheetId: SHEET_ID,
-        requestBody: { valueInputOption: 'USER_ENTERED', data: data2update },
-      });
-    }
-
     res.json(cambios);
   } catch (e) {
     res.status(e.status || 500).json({ error: e.message });

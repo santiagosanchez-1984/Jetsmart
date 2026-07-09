@@ -3,5 +3,8 @@
   "framework": null,
   "rewrites": [
     { "source": "/", "destination": "/api/index" }
-  ]
+  ],
+  "functions": {
+    "api/verificar-cambios-vuelos.js": { "maxDuration": 60 }
+  }
 }
